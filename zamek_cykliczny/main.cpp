@@ -8,6 +8,7 @@ struct Result {
     int positionFromEnd;
     int consecutiveNines;
     int dif;
+    int pdif;
 };
 
 string n;
@@ -68,7 +69,14 @@ Result findNineAndDetails() {
         dif = base - stoi(numbersAfter) - 1;
     }
 
-    return {positionFromEnd, consecutiveNines, dif};
+    int pdif = 0;
+    for (auto x : numbersAfter) {
+        if (x != '0') {
+            pdif += 9 - (x - '0');
+        }
+    }
+
+    return {positionFromEnd, consecutiveNines, dif, pdif};
 }
 
 int endNines() {
@@ -97,27 +105,37 @@ int main() {
     }
 
     Result result = findNineAndDetails();
-    if (result.dif < result.consecutiveNines && result.positionFromEnd != 1 && result.positionFromEnd != -1) {
-        for (int i = n.length() - 1; i > n.length() - result.positionFromEnd; i--) {
+    // cout << result.consecutiveNines << " " << result.dif << " " << result.positionFromEnd << " " << res << "\n";
+    int diff = result.dif - result.pdif;
+    if (diff <= result.consecutiveNines && result.positionFromEnd != 1 &&
+        result.positionFromEnd != -1) {
+        for (int i = n.length() - 1; i > n.length() - result.positionFromEnd;
+             i--) {
             n[i] = '9';
         }
         res += result.dif;
     }
+    // cout << n << " " << res << "\n";
 
     int count = endNines();
-    if (n.length() >= 2 && n[n.length() - 1] == '0' && n[n.length() - 2] == '9') {
+    if (n.length() >= 2 && n[n.length() - 1] == '0' &&
+        n[n.length() - 2] == '9') {
         res += count;
     }
 
+    // cout << count << "\n";
     int l = n.length() - count;
     int j = n.length() - 1;
+    // cout << res << " " << n << "\n";
     if (n[j] != '0') {
         res += 9 - (n[j] - '0');
     }
+    // cout << res << " " << n << "\n";
     for (int i = 0; i < l - 1; i++) {
         int x = n[i] - '0';
         if (n[i] != '0') {
             res += 10 - x;
+            // cout << n[i] << " " << res << "\n";
         }
     }
 
