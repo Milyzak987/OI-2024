@@ -4,16 +4,16 @@
 
 using namespace std;
 
-deque<int> q;
-int res = 0;
-int nines = 0;
+deque<long long> q;
+long long res = 0;
+long long nines = 0;
 
 bool oneZeros() {
     if (q.front() == 1) {
         if (q.size() == 1) {
             return true;
         }
-        for (int i = 1; i < q.size(); i++) {
+        for (long long i = 1; i < q.size(); i++) {
             if (q[i] != 0) {
                 return false;
             }
@@ -24,18 +24,10 @@ bool oneZeros() {
     return false;
 }
 
-void addOne() {
-    int i = q.size() - 1;
-    while (i >= 0 && q[i] == 9) {
-        q[i] = 0;
-        i--;
-    }
-    if (i >= 0) {
-        q[i]++;
-    } else {
-        q.push_front(1);
-    }
-    res++;
+void addToNine() {
+    res += 9 - q.back();
+    q.pop_back();
+    q.push_back(9);
 }
 
 void move() {
@@ -48,9 +40,9 @@ void move() {
 }
 
 void nineCase() {
-    deque<int> numbersAfter;
-    int start = (q.size() > 8) ? q.size() - 8 : 0;
-    for (int i = q.size() - 1; i >= start; i--) {
+    deque<long long> numbersAfter;
+    long long start = (q.size() > 9) ? q.size() - 9 : 0;
+    for (long long i = q.size() - 1; i >= start; i--) {
         numbersAfter.push_front(q[i]);
     }
     if (numbersAfter.front() != 9) {
@@ -64,17 +56,17 @@ void nineCase() {
         }
     }
 
-    int consecutiveNines = 0;
-    int i = q.size() - numbersAfter.size() - 1;
+    long long consecutiveNines = 0;
+    long long i = q.size() - numbersAfter.size() - 1;
     while (i >= 0 && q[i] == 9) {
         consecutiveNines++;
         i--;
     }
 
-    int positionFromEnd = numbersAfter.size();
+    long long positionFromEnd = numbersAfter.size();
 
-    int base = 1;
-    for (int i = 0; i < positionFromEnd; i++) {
+    long long base = 1;
+    for (long long i = 0; i < positionFromEnd; i++) {
         base *= 10;
     }
 
@@ -82,29 +74,30 @@ void nineCase() {
     for (auto x : numbersAfter) {
         nums.push_back((x + '0'));
     }
-    int moveDif = base - stoi(nums) - 1;
+    long long moveDif = base - stoll(nums) - 1;
 
-    int addDif = 0;
+    long long addDif = 0;
     for (auto x : numbersAfter) {
-        // cout << x;
         if (x != 0) {
             addDif += 9 - x;
         }
     }
 
-    int fullDif = moveDif - addDif;
-    // cout << "\n" << fullDif << " " << consecutiveNines << "\n";
+    long long fullDif = moveDif - addDif;
     if (fullDif <= consecutiveNines) {
-        // cout << "OOOO SPECIAL CASE" << "\n";
-        for (int i = 0; i < moveDif; i++) {
-            addOne();
+        res += moveDif;
+        for (long long i = 0; i < positionFromEnd; i++) {
+            q.pop_back();
+        }
+        for (long long i = 0; i < positionFromEnd; i++) {
+            q.push_back(9);
         }
     }
 }
 
 void endNines() {
     if (q.back() != 0) {
-        int i = q.size() - 2;
+        long long i = q.size() - 2;
         while (i >= 0 && q[i] == 9) {
             nines++;
             i--;
@@ -131,10 +124,10 @@ int main() {
     nineCase();
     endNines();
 
-    int i = 0;
+    long long i = 0;
     while (nines != q.size()) {
-        while (q.back() != 9 && q.back() != 0) {
-            addOne();
+        if (q.back() != 9 && q.back() != 0) {
+            addToNine();
         }
         if (q.back() == 9) {
             nines++;

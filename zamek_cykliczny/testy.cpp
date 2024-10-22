@@ -8,6 +8,13 @@ deque<int> q;
 int res = 0;
 int nines = 0;
 
+void showQueue(){
+    for(auto x : q){
+        cout << x;
+    }
+    cout << "\n";
+}
+
 bool oneZeros() {
     if (q.front() == 1) {
         if (q.size() == 1) {
@@ -36,6 +43,8 @@ void addOne() {
         q.push_front(1);
     }
     res++;
+    cout << res << " Add one - >";
+    showQueue();
 }
 
 void move() {
@@ -45,6 +54,8 @@ void move() {
         q.pop_front();
     }
     res++;
+    cout << res << " Move - >";
+    showQueue();
 }
 
 void nineCase() {
