@@ -8,8 +8,8 @@ deque<int> q;
 int res = 0;
 int nines = 0;
 
-void showQueue(){
-    for(auto x : q){
+void showQueue(deque<int> dq){
+    for(auto x : dq){
         cout << x;
     }
     cout << "\n";
@@ -43,8 +43,8 @@ void addOne() {
         q.push_front(1);
     }
     res++;
-    cout << res << " Add one - >";
-    showQueue();
+    // cout << res << " Add one - >";
+    // showQueue(q);
 }
 
 void move() {
@@ -54,8 +54,8 @@ void move() {
         q.pop_front();
     }
     res++;
-    cout << res << " Move - >";
-    showQueue();
+    // cout << res << " Move - >";
+    // showQueue(q);
 }
 
 void nineCase() {
@@ -68,12 +68,17 @@ void nineCase() {
         return;
     }
 
+    showQueue(numbersAfter);
+
     while (numbersAfter.front() == 9) {
         numbersAfter.pop_front();
         if (numbersAfter.empty()) {
             return;
         }
     }
+
+    showQueue(numbersAfter);
+
 
     int consecutiveNines = 0;
     int i = q.size() - numbersAfter.size() - 1;
@@ -93,7 +98,12 @@ void nineCase() {
     for (auto x : numbersAfter) {
         nums.push_back((x + '0'));
     }
+
+    cout << nums << "\n";
+
     int moveDif = base - stoi(nums) - 1;
+
+    cout << moveDif;
 
     int addDif = 0;
     for (auto x : numbersAfter) {
@@ -104,7 +114,7 @@ void nineCase() {
     }
 
     int fullDif = moveDif - addDif;
-    // cout << "\n" << fullDif << " " << consecutiveNines << "\n";
+    cout << "\n" << fullDif << " " << consecutiveNines << "\n";
     if (fullDif <= consecutiveNines) {
         // cout << "OOOO SPECIAL CASE" << "\n";
         for (int i = 0; i < moveDif; i++) {
