@@ -1,12 +1,15 @@
+// deque long longs, addToNine, check nineCase for all
 #include <deque>
 #include <iostream>
 #include <string>
 
 using namespace std;
 
+string str;
 deque<long long> q;
 long long res = 0;
 long long nines = 0;
+long long minres = 1e18;
 
 bool oneZeros() {
     if (q.front() == 1) {
@@ -39,9 +42,43 @@ void move() {
     res++;
 }
 
-void nineCase() {
+void endNines() {
+    if (q.back() != 0) {
+        long long i = q.size() - 2;
+        while (i >= 0 && q[i] == 9) {
+            nines++;
+            i--;
+        }
+    }
+}
+
+void solve() {
+    endNines();
+
+    while (nines != q.size()) {
+        if (q.back() != 9 && q.back() != 0) {
+            addToNine();
+        }
+        if (q.back() == 9) {
+            nines++;
+        }
+        if (nines != q.size()) {
+            move();
+        }
+    }
+    minres = min(minres, res);
+}
+
+void nineCase(long long u) {
+    q.clear();
+    res = 0;
+    nines = 0;
+    for (auto x : str) {
+        q.push_back(x - '0');
+    }
+
     deque<long long> numbersAfter;
-    long long start = (q.size() > 9) ? q.size() - 9 : 0;
+    long long start = (q.size() > u) ? q.size() - u : 0;
     for (long long i = q.size() - 1; i >= start; i--) {
         numbersAfter.push_front(q[i]);
     }
@@ -93,23 +130,14 @@ void nineCase() {
             q.push_back(9);
         }
     }
+    solve();
 }
 
-void endNines() {
-    if (q.back() != 0) {
-        long long i = q.size() - 2;
-        while (i >= 0 && q[i] == 9) {
-            nines++;
-            i--;
-        }
-    }
-}
 
 int main() {
     ios_base::sync_with_stdio(0);
     cin.tie(0);
 
-    string str;
     cin >> str;
 
     for (auto x : str) {
@@ -121,23 +149,12 @@ int main() {
         return 0;
     }
 
-    nineCase();
-    endNines();
-
-    long long i = 0;
-    while (nines != q.size()) {
-        if (q.back() != 9 && q.back() != 0) {
-            addToNine();
-        }
-        if (q.back() == 9) {
-            nines++;
-        }
-        if (nines != q.size()) {
-            move();
-        }
+    solve();
+    for (int i = 1; i <= 8; i++) {
+        nineCase(i);
     }
 
-    cout << res + 2;
+    cout << minres + 2;
 
     return 0;
 }
