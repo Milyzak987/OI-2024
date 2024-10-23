@@ -5,4 +5,4 @@
 *.in
 *.out
 .vscode/
-!zamek_cykliczny/testy_specjalne/
+!zamek_cykliczny/testy_specjalne/*.in
