@@ -94,10 +94,10 @@ void nineCase(long long u) {
     }
 
     long long consecutiveNines = 0;
-    long long i = q.size() - numbersAfter.size() - 1;
-    while (i >= 0 && q[i] == 9) {
+    long long j = q.size() - numbersAfter.size() - 1;
+    while (j >= 0 && q[j] == 9) {
         consecutiveNines++;
-        i--;
+        j--;
     }
 
     long long positionFromEnd = numbersAfter.size();
