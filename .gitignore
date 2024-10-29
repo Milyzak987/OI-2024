@@ -1,7 +1,6 @@
 *.exe
 *.md
 *.cc
-*.h
 *.in
 *.out
 .vscode/
