@@ -1,4 +1,4 @@
-// string
+// array
 #include <cmath>
 #include <iostream>
 #include <string>
@@ -34,46 +34,29 @@ int endNines(int n) {
 }
 
 void nineCase(int n) {
-    long long start = (n > 7) ? n - 7 : 0;
-    for (long long i = n - 1; i >= start; i--) {
-        numbersAfter.push_front(q[i]);
-    }
+    for (int t = 1; t <= 8; t++) {
+        long long start = max(n - t, 0);
 
-    long long consecutiveNines = 0;
-    long long j = q.size() - numbersAfter.size() - 1;
-    while (j >= 0 && q[j] == 9) {
-        consecutiveNines++;
-        j--;
-    }
-
-    long long positionFromEnd = numbersAfter.size();
-
-    long long base = 1;
-    for (long long i = 0; i < positionFromEnd; i++) {
-        base *= 10;
-    }
-
-    string nums;
-    for (auto x : numbersAfter) {
-        nums.push_back((x + '0'));
-    }
-    long long moveDif = base - stoll(nums) - 1;
-
-    long long addDif = 0;
-    for (auto x : numbersAfter) {
-        if (x != 0) {
-            addDif += 9 - x;
+        int j = start - 1, nines = 0;
+        while (j >= 0 && lock[j] == 9){
+            j--;
+            nines++;
         }
-    }
 
-    long long fullDif = moveDif - addDif;
-    if (fullDif <= consecutiveNines) {
-        res += moveDif;
-        for (long long i = 0; i < positionFromEnd; i++) {
-            q.pop_back();
+        int dif = 0, base = 1;
+        for (long long i = n - 1; i >= start; i--) {
+            base *= 10;
+            dif += ((9 - lock[i]) * base) - (9 - lock[i]);
         }
-        for (long long i = 0; i < positionFromEnd; i++) {
-            q.push_back(9);
+
+        if (dif <= nines) {
+            res += moveDif;
+            for (long long i = 0; i < positionFromEnd; i++) {
+                q.pop_back();
+            }
+            for (long long i = 0; i < positionFromEnd; i++) {
+                q.push_back(9);
+            }
         }
     }
 }
@@ -86,7 +69,7 @@ int main() {
     cin >> s;
 
     int n = s.length();
-    for(int i = 0; i < n; i++){
+    for (int i = 0; i < n; i++) {
         lock[i] = s[i] - '0';
     }
 
