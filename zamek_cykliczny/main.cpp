@@ -40,13 +40,13 @@ void nineCase(long long n, long long &res) {
     for (long long i = n - 1; i >= start; i--) {
         suffix.push_front(lock[i]);
     }
-    if (suffix.front() != 9) { // brak 9 na osmym miejscu od konca
+    if (suffix.front() != 9) {
         return;
     }
 
     while (suffix.front() == 9) {
         suffix.pop_front();
-        if (suffix.empty()) { // same 9 na koncu
+        if (suffix.empty()) {
             return;
         }
     }
@@ -58,17 +58,16 @@ void nineCase(long long n, long long &res) {
         nines++;
     }
 
-    long long moveDif = 0, base = 1, addDif = 0;
+    long long moveDif = 0, base = 1, addDif = -1;
     for (long long i = n - 1; i >= n - lim; i--) {
         if (lock[i] != 0) {
-            addDif += 9 - lock[i];
+            addDif += 10 - lock[i];
         }
         moveDif += (9 - lock[i]) * base;
         base *= 10;
     }
     long long fullDif = moveDif - addDif;
-    // cout << nines << " " << moveDif << "\n";
-    if (fullDif <= nines) {
+    if (fullDif < nines) {
         res += moveDif;
         for (long long i = n - 1; i >= n - lim; i--) {
             lock[i] = 9;
@@ -97,7 +96,6 @@ int main() {
     nineCase(n, res);
 
     long long count = endNines(n);
-    // cout << count << " " << res << "\n";
     if (lock[n - 1] == 0) {
         res += count;
     } else {
@@ -105,7 +103,6 @@ int main() {
     }
 
     long long r = n - count - 1;
-    // cout << lock[n - 1] << "\n";
     for (long long i = 0; i < r; i++) {
         if (lock[i] != 0) {
             res += 10 - lock[i];
