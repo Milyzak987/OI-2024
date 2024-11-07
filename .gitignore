@@ -4,5 +4,6 @@
 *.in
 *.out
 .vscode/
+sprawiedliwy_podzial/spr/
 !zamek_cykliczny/testy_specjalne/*.in
 !zamek_cykliczny/testy_specjalne/*.out
