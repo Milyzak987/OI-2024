@@ -1,6 +1,7 @@
 // jak ktos to czytasz to z gory przepraszam
 #include <iostream>
 #include <vector>
+#include <algorithm>
 
 using namespace std;
 
