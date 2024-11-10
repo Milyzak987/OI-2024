@@ -1,86 +1,175 @@
+// jak ktos to czytasz to z gory przepraszam
 #include <iostream>
 #include <vector>
-#include <cstring>
 
 using namespace std;
 
-const int MAXN = 3000 + 1;
+const int MAXN = 3007;
 int n, m, k;
-vector<int> treeBitada[MAXN], treeBajtogrod[MAXN];
-int dp[MAXN][MAXN];
+vector<int> bitin[MAXN], bitada[MAXN], bajtogrod[MAXN];
+long long dp[MAXN][MAXN][4];
+bool visited[MAXN];
 
-// Funkcja DFS do obliczenia liczby możliwych przypisań poddrzew Bitady do Bajtogrodu
-int calculate(int u, int v, int parentU, int parentV) {
-    // Jeśli już obliczono wynik dla u -> v, zwróć go
-    if (dp[u][v] != -1) return dp[u][v];
-    
-    // Liczba sposobów przypisań poddrzew u w Bitadzie do poddrzewa v w Bajtogrodzie
-    int ways = 1;
-
-    // Zbierz dzieci węzła u w Bitadzie i v w Bajtogrodzie
-    vector<int> childrenU, childrenV;
-    for (int child : treeBitada[u]) {
-        if (child != parentU) childrenU.push_back(child);
+int nodeToNum(int targetChild, int parent) {
+    if (bajtogrod[parent][0] == targetChild) {
+        return 0;
     }
-    for (int child : treeBajtogrod[v]) {
-        if (child != parentV) childrenV.push_back(child);
+    if (bajtogrod[parent][1] == targetChild) {
+        return 1;
     }
+    if (bajtogrod[parent][2] == targetChild) {
+        return 2;
+    }
+    return 3;
+}
 
-    // Jeśli liczba dzieci węzła u jest większa niż liczba dzieci węzła v, zwróć 0
-    if (childrenU.size() > childrenV.size()) return dp[u][v] = 0;
-
-    // Używamy DP, aby przeliczyć możliwe przypisania dzieci u do dzieci v
-    vector<vector<int>> childDP(childrenU.size() + 1, vector<int>(childrenV.size() + 1, 0));
-    childDP[0][0] = 1;
-
-    for (int i = 0; i <= childrenU.size(); ++i) {
-        for (int j = 0; j <= childrenV.size(); ++j) {
-            if (childDP[i][j] == 0) continue;
-
-            if (i < childrenU.size() && j < childrenV.size()) {
-                int possibleWays = calculate(childrenU[i], childrenV[j], u, v);
-                childDP[i + 1][j + 1] = (childDP[i + 1][j + 1] + 1LL * childDP[i][j] * possibleWays % k) % k;
-            }
-
-            if (j < childrenV.size()) {
-                childDP[i][j + 1] = (childDP[i][j + 1] + childDP[i][j]) % k;
-            }
+void graphToTree(int v) {
+    visited[v] = true;
+    for (auto x : bitin[v]) {
+        if (!visited[x]) {
+            bitada[v].push_back(x);
+            graphToTree(x);
         }
     }
+}
 
-    // Wynik dla dp[u][v] to liczba sposobów na przypisanie wszystkich dzieci u do dzieci v
-    ways = childDP[childrenU.size()][childrenV.size()];
+long long countUtoV(int v, int u, int edge) {
+    if (dp[v][u][edge] == -1) {
+        int chu = bitada[u].size();
+        int chv;
+        if (edge == 3) {
+            chv = bajtogrod[v].size();
+        } else {
+            chv = bajtogrod[v].size() - 1;
+        }
 
-    return dp[u][v] = ways;
+        if (chu == 0) {
+            dp[v][u][edge] = 1;
+            return dp[v][u][edge];
+        }
+        if (chu > chv) {
+            dp[v][u][edge] = 0;
+            return dp[v][u][edge];
+        }
+
+        int chv1, chv2, chv3, chu1, chu2;
+        // wiem ze te ify sa brzydkie nie musisz mi o tym przypominac
+        if (edge == 0) {
+            chv1 = bajtogrod[v][min(chv, 1)];
+            chv2 = bajtogrod[v][min(chv, 2)];
+        }
+        if (edge == 1) {
+            chv1 = bajtogrod[v][min(chv, 0)];
+            chv2 = bajtogrod[v][min(chv, 2)];
+        }
+        if (edge == 2) {
+            chv1 = bajtogrod[v][min(chv, 0)];
+            chv2 = bajtogrod[v][min(chv, 1)];
+        }
+        if (edge == 3) {
+            chv1 = bajtogrod[v][min(chv - 1, 0)];
+            chv2 = bajtogrod[v][min(chv - 1, 1)];
+            chv3 = bajtogrod[v][min(chv - 1, 2)];
+        }
+        chu1 = bitada[u][0];
+        chu2 = bitada[u][1];
+
+        if (chv == 1 && chu == 1) {
+            dp[v][u][edge] = (countUtoV(chv1, chu1, nodeToNum(v, chv1))) % k;
+        }
+        if (chv == 2 && chu == 1) {
+            dp[v][u][edge] = (countUtoV(chv1, chu1, nodeToNum(v, chv1)) +
+                              countUtoV(chv2, chu1, nodeToNum(v, chv2))) %
+                             k;
+        }
+        if (chv == 2 && chu == 2) {
+            dp[v][u][edge] = (((countUtoV(chv1, chu1, nodeToNum(v, chv1)) *
+                                countUtoV(chv2, chu2, nodeToNum(v, chv2))) %
+                               k) +
+                              ((countUtoV(chv1, chu2, nodeToNum(v, chv1)) *
+                                countUtoV(chv2, chu1, nodeToNum(v, chv2))) %
+                               k)) %
+                             k;
+        }
+        if (chv == 3 && chu == 1) {
+            dp[v][u][edge] = (countUtoV(chv1, chu1, nodeToNum(v, chv1)) +
+                              countUtoV(chv2, chu1, nodeToNum(v, chv2)) +
+                              countUtoV(chv3, chu1, nodeToNum(v, chv3))) %
+                             k;
+        }
+        if (chv == 3 && chu == 2) {
+            // naprawde przepraszam, wiem ze mozna zrobic to lepiej,
+            // ale jak cos dziala to lepiej tego nie ruszac
+            dp[v][u][edge] = (((countUtoV(chv1, chu1, nodeToNum(v, chv1)) *
+                                countUtoV(chv2, chu2, nodeToNum(v, chv2))) %
+                               k) +
+                              ((countUtoV(chv1, chu1, nodeToNum(v, chv1)) *
+                                countUtoV(chv3, chu2, nodeToNum(v, chv3))) %
+                               k) +
+                              ((countUtoV(chv2, chu1, nodeToNum(v, chv2)) *
+                                countUtoV(chv1, chu2, nodeToNum(v, chv1))) %
+                               k) +
+                              ((countUtoV(chv2, chu1, nodeToNum(v, chv2)) *
+                                countUtoV(chv3, chu2, nodeToNum(v, chv3))) %
+                               k) +
+                              ((countUtoV(chv3, chu1, nodeToNum(v, chv3)) *
+                                countUtoV(chv1, chu2, nodeToNum(v, chv1))) %
+                               k) +
+                              ((countUtoV(chv3, chu1, nodeToNum(v, chv3)) *
+                                countUtoV(chv2, chu2, nodeToNum(v, chv2))) %
+                               k)) %
+                             k;
+        }
+    } else {
+        return dp[v][u][edge];
+    }
+    return dp[v][u][edge];
 }
 
 int main() {
-    cin >> n >> m >> k;
+    ios_base::sync_with_stdio(0);
+    cin.tie(0);
 
-    // Inicjalizuj drzewa
+    cin >> n >> m >> k;
     for (int i = 0; i < n - 1; ++i) {
         int x, y;
         cin >> x >> y;
-        treeBitada[x].push_back(y);
-        treeBitada[y].push_back(x);
+        bitin[x].push_back(y);
+        bitin[y].push_back(x);
     }
+
+    int root;
+    for (int i = 1; i <= n; ++i) {
+        if (bitin[i].size() < 3) {
+            root = i;
+            break;
+        }
+    }
+
+    graphToTree(root);
 
     for (int i = 0; i < m - 1; ++i) {
         int x, y;
         cin >> x >> y;
-        treeBajtogrod[x].push_back(y);
-        treeBajtogrod[y].push_back(x);
+        bajtogrod[x].push_back(y);
+        bajtogrod[y].push_back(x);
     }
 
-    // Inicjalizacja dp
-    memset(dp, -1, sizeof(dp));
+    for (int i = 1; i <= m; i++) {
+        for (int j = 1; j <= n; j++) {
+            for (int l = 0; l < 4; l++) {
+                dp[i][j][l] = -1;
+            }
+        }
+    }
 
-    // Liczymy wynik dla przypisania wierzchołka 1 w Bitadzie do każdego wierzchołka w Bajtogrodzie
     int result = 0;
     for (int v = 1; v <= m; ++v) {
-        result = (result + calculate(1, v, -1, -1)) % k;
+        result = (result + countUtoV(v, root, 3)) % k;
     }
 
-    cout << result << endl;
+    cout << result;
+    // tak wiem ze mozna to zrobic szybciej, ladniej i z użyciem mniejszej ilosci pamieci,
+    // ale wynik jest dobry i wchodzi na 100 (hopefully), wiec nie moge narzekac
     return 0;
 }
