@@ -1,4 +1,4 @@
-// works for n <= 10, doesnt work for n <= 20 (n*2^n)
+// works for n <= 20 (n*2^n), can improve by integrating generator into checker
 #include <algorithm>
 #include <iostream>
 #include <vector>

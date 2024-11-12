@@ -1,3 +1,4 @@
+// works 40 (ai == bi)
 #include <algorithm>
 #include <iostream>
 #include <vector>
