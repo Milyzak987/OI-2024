@@ -1,4 +1,4 @@
-// array
+// works 100 (array)
 #include <deque>
 #include <iostream>
 #include <string>
