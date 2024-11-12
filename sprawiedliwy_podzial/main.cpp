@@ -58,7 +58,6 @@ int main() {
     sort(values.begin(), values.begin() + n, comp);
 
     long long sumA = 0, sumB = 0;
-
     for (int i = 0; i < n; i++) {
         item x = values[i];
         if (sumA < sumB) {
