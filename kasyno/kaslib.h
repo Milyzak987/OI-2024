@@ -4,11 +4,12 @@ using namespace std;
 
 namespace {
 // Można zmienić te wartości.
-long long N = 1'000'000'000'000'000'000ll;
+// long long N = 1'000'000'000'000'000'000ll;
+long long N = 1'000'000'000ll;
 int bajtalary = 10'000'000;
 
 // Aby zmienić losowość należy zamienić 1 na dowolną inną liczbę typu int.
-mt19937_64 rng(1);
+mt19937_64 rng(2);
 
 long long X;
 bool czy_zainicjalizowany = false;
