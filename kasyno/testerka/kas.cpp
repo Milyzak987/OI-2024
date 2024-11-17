@@ -35,7 +35,7 @@ int main() {
     ios_base::sync_with_stdio(0);
     cin.tie(0);
     long long n = DajN();
-    long long lim = 4000;
+    long long lim = 3000;
     gen(lim);
 
     while (true) {
