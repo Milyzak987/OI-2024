@@ -2,7 +2,6 @@
 
 using namespace std;
 
-namespace {
 // Można zmienić te wartości.
 long long N = 1'000'000'000'000'000'000ll;
 int bajtalary = 10'000'000;
@@ -38,7 +37,6 @@ void proba_zakonczenia() {
 void zjedz_bajtalara() {
     proba_zakonczenia();
     --bajtalary;
-}
 }
 
 long long DajN() {
