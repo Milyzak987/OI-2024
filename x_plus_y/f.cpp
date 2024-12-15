@@ -1,98 +1,73 @@
-#include <iostream>
-#include <vector>
-#include <algorithm>
-#include <queue>
-#include <functional>
-
+#include <bits/stdc++.h>
 using namespace std;
 
-const int MAXN = 200005;
+const int MAXN = 1e6 + 5;
 
-vector<int> graph[MAXN];
-bool removed[MAXN]; // Czy dany wierzchołek został usunięty
-int subtree_size[MAXN];
-vector<int> depths;
+vector<int> tree[MAXN];
+int euler[MAXN], start[MAXN], finish[MAXN];
+int fenwick[MAXN];
+int n, timer = 0;
 
-// Oblicz rozmiary poddrzew
-int calculate_subtree_sizes(int v, int parent) {
-    subtree_size[v] = 1;
-    for (int u : graph[v]) {
-        if (u != parent && !removed[u]) {
-            subtree_size[v] += calculate_subtree_sizes(u, v);
-        }
-    }
-    return subtree_size[v];
-}
-
-// Znajdź centroid
-int find_centroid(int v, int parent, int total_size) {
-    for (int u : graph[v]) {
-        if (u != parent && !removed[u] && subtree_size[u] > total_size / 2) {
-            return find_centroid(u, v, total_size);
-        }
-    }
-    return v;
-}
-
-// Oblicz głębokości z centroidu
-void calculate_depths(int v, int parent, int depth) {
-    depths.push_back(depth);
-    for (int u : graph[v]) {
-        if (u != parent && !removed[u]) {
-            calculate_depths(u, v, depth + 1);
-        }
+// Fenwick Tree
+void update(int idx, int val) {
+    while (idx <= n) {
+        fenwick[idx] += val;
+        idx += idx & -idx;
     }
 }
 
-// Dekompozycja centroidowa
-int centroid_decomposition(int v) {
-    // Znajdź rozmiar poddrzewa
-    int total_size = calculate_subtree_sizes(v, -1);
-    // Znajdź centroid
-    int centroid = find_centroid(v, -1, total_size);
-    removed[centroid] = true;
+int query(int idx) {
+    int sum = 0;
+    while (idx > 0) {
+        sum += fenwick[idx];
+        idx -= idx & -idx;
+    }
+    return sum;
+}
 
-    // Przetwarzaj centroid
-    vector<int> all_depths = {0}; // Dodajemy głębokość centroidu
-    for (int u : graph[centroid]) {
-        if (!removed[u]) {
-            depths.clear();
-            calculate_depths(u, centroid, 1);
-            all_depths.insert(all_depths.end(), depths.begin(), depths.end());
+// DFS to create Euler Tour
+void dfs(int node, int parent) {
+    start[node] = ++timer;
+    euler[timer] = node;
+    for (int child : tree[node]) {
+        if (child != parent) {
+            dfs(child, node);
         }
     }
-
-    // Posortuj głębokości i wybierz optymalne
-    sort(all_depths.begin(), all_depths.end(), greater<int>());
-    int result = all_depths.size() > k ? all_depths[k] : 0;
-
-    // Rekurencyjnie dekomponuj poddrzewa
-    for (int u : graph[centroid]) {
-        if (!removed[u]) {
-            result = min(result, centroid_decomposition(u));
-        }
-    }
-
-    removed[centroid] = false; // Przywróć stan
-    return result;
+    finish[node] = timer;
 }
 
 int main() {
     ios::sync_with_stdio(false);
-    cin.tie(nullptr);
+    cin.tie(0);
 
-    int n, k;
-    cin >> n >> k;
-
-    for (int i = 0; i < n - 1; ++i) {
-        int u, v;
-        cin >> u >> v;
-        graph[u].push_back(v);
-        graph[v].push_back(u);
+    // Input
+    cin >> n;
+    for (int i = 1; i < n; i++) {
+        int a, b;
+        cin >> a >> b;
+        tree[a].push_back(b);
+        tree[b].push_back(a);
     }
 
-    // Rozpocznij dekompozycję
-    cout << centroid_decomposition(1) << "\n";
+    // Create Euler Tour
+    dfs(1, -1);
+
+    vector<int> result(n + 1, 0);
+
+    // Process each node
+    for (int i = 1; i <= n; i++) {
+        int node = euler[i];
+        // Count nodes with IDs smaller than the current node in its subtree
+        result[node] = query(start[node] - 1);
+        // Update Fenwick Tree for the current node
+        update(start[node], 1);
+    }
+
+    // Output results
+    for (int i = 1; i <= n; i++) {
+        cout << result[i] << "\n";
+    }
 
     return 0;
 }
