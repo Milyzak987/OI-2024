@@ -1,82 +1,69 @@
-// C++ program to find the maximum area of 
-// rectangle in a 2D matrix.
-#include <bits/stdc++.h>
+#include <iostream>
+#include <vector>
+#include <queue>
+#include <algorithm>
+
 using namespace std;
 
-// Function to find the maximum area of 
-// rectangle in a histogram.
-int getMaxArea(vector<int>& arr) {
-    int n = arr.size();
-    stack<int> s;
-    int res = 0;
-    int tp, curr;
-    for (int i = 0; i < n; i++) {      
-         
-        while (!s.empty() && arr[s.top()] >= arr[i]) {
-          
-            // The popped item is to be considered as the 
-            // smallest element of the histogram
-            tp = s.top(); 
-            s.pop();
-          
-            // For the popped item previous smaller element is 
-            // just below it in the stack (or current stack top)
-            // and next smaller element is i
-            int width = s.empty() ? i : i - s.top() - 1;
-          
-            res = max(res,  arr[tp] * width);
-        }
-        s.push(i);
-    }
+const int MAXN = 200005;
 
-    // For the remaining items in the stack, next smaller does
-    // not exist. Previous smaller is the item just below in
-    // stack.
-    while (!s.empty()) {
-        tp = s.top(); s.pop();
-        curr = arr[tp] * (s.empty() ? n : n - s.top() - 1);
-        res = max(res, curr);
-    }
+vector<int> graph[MAXN];
+int depth[MAXN];
+bool visited[MAXN];
 
-    return res;
-}
+// BFS do obliczenia odległości od pokoju 1
+void bfs(int start, int n) {
+    queue<int> q;
+    q.push(start);
+    visited[start] = true;
+    depth[start] = 0;
 
-// Function to find the maximum area of rectangle
-// in a 2D matrix.
-int maxArea(vector<vector<int>> &mat) {
-    int n = mat.size(), m = mat[0].size();
-    
-    // Array to store matrix 
-    // as a histogram.
-    vector<int> arr(m, 0);
-    
-    int ans = 0;
-    
-    // Traverse row by row.
-    for (int i=0; i<n; i++) {
-        for (int j=0; j<m; j++) {
-            if (mat[i][j]==1) {
-                arr[j]++;
-            }
-            else {
-                arr[j] = 0;
+    while (!q.empty()) {
+        int current = q.front();
+        q.pop();
+
+        for (int neighbor : graph[current]) {
+            if (!visited[neighbor]) {
+                visited[neighbor] = true;
+                depth[neighbor] = depth[current] + 1;
+                q.push(neighbor);
             }
         }
-        
-        ans = max(ans, getMaxArea(arr));
     }
-    
-    return ans;
 }
 
 int main() {
-    vector<vector<int>> mat = 
-        {{0,1,1,0},
-         {1,1,1,1},
-         {1,1,1,1},
-         {1,1,0,0}};
-         
-    cout << maxArea(mat) << endl;
-    
+    ios::sync_with_stdio(false);
+    cin.tie(nullptr);
+
+    int n, k;
+    cin >> n >> k;
+
+    for (int i = 0; i < n - 1; ++i) {
+        int u, v;
+        cin >> u >> v;
+        graph[u].push_back(v);
+        graph[v].push_back(u);
+    }
+
+    // Obliczanie odległości od pokoju 1
+    bfs(1, n);
+
+    // Znajdź liście (pokoje najdalsze od 1)
+    vector<int> leaves;
+    for (int i = 1; i <= n; ++i) {
+        if (graph[i].size() == 1) { // Liść ma tylko jednego sąsiada
+            leaves.push_back(depth[i]);
+        }
+    }
+
+    // Posortuj odległości liści od największej do najmniejszej
+    sort(leaves.rbegin(), leaves.rend());
+
+    // Oblicz minimalną maksymalną odległość po wykorzystaniu k miauknięć
+    int result = leaves[k]; // Po usunięciu k najdalszych połączeń
+
+    cout << result << "\n";
+
     return 0;
 }
