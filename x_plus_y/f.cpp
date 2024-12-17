@@ -1,38 +1,54 @@
 #include <iostream>
 #include <vector>
-#include <numeric> // dla std::partial_sum
+#include <cmath>
+#include <climits>
+using namespace std;
 
-int findIndexOfMinimum(const std::vector<int>& differences) {
-    int n = differences.size() + 1; // liczba elementów ciągu
-    std::vector<int> values(n, 0); // ciąg wartości względnych
-
-    // Odtwarzamy wartości względne
-    for (int i = 1; i < n; ++i) {
-        values[i] = values[i - 1] + differences[i - 1];
+// Funkcja odtwarzająca względne wartości ciągu na podstawie różnic |a[i+1] - a[i]|
+vector<int> reconstructSequence(const vector<int>& diffs) {
+    vector<int> sequence(diffs.size() + 1, 0);
+    for (int i = 1; i < sequence.size(); ++i) {
+        sequence[i] = sequence[i - 1] + diffs[i - 1];
     }
+    return sequence;
+}
 
-    // Znajdujemy indeks najmniejszej wartości
-    int minIndex = 0;
-    int minValue = values[0];
+// Funkcja znajdująca indeks najmniejszej liczby na podstawie różnic w trójelementowych oknach
+int findMinIndex(const vector<int>& sequence, const vector<int>& maxMinDiffs) {
+    int minIndex = -1;
+    int minValue = INT_MAX;
 
-    for (int i = 1; i < n; ++i) {
-        if (values[i] < minValue) {
-            minValue = values[i];
-            minIndex = i;
+    for (int i = 0; i + 2 < sequence.size(); ++i) {
+        int maxVal = max({sequence[i], sequence[i + 1], sequence[i + 2]});
+        int minVal = min({sequence[i], sequence[i + 1], sequence[i + 2]});
+        if (maxVal - minVal == maxMinDiffs[i]) {
+            // Jeśli różnica pasuje, sprawdzamy najmniejszy element
+            if (minVal < minValue) {
+                minValue = minVal;
+                minIndex = i + (sequence[i] == minVal ? 0 : (sequence[i + 1] == minVal ? 1 : 2));
+            }
         }
     }
-
-    return minIndex; // indeks najmniejszej liczby
+    return minIndex;
 }
 
 int main() {
-    // Przykład danych wejściowych
-    std::vector<int> differences = {2, -3, 1, -4, 3}; // różnice między kolejnymi elementami ciągu
+    // Przykładowe dane wejściowe
+    vector<int> diffs = {4, 5, 6, 3}; // |a[i+1] - a[i]|
+    vector<int> maxMinDiffs = {5, 6, 6}; // różnice max - min w oknach 3-elementowych
 
-    // Wyznaczenie indeksu najmniejszego elementu
-    int minIndex = findIndexOfMinimum(differences);
+    // Odtwórz względne wartości ciągu
+    vector<int> sequence = reconstructSequence(diffs);
 
-    std::cout << "Indeks najmniejszej liczby w ciagu: " << minIndex << std::endl;
+    // Znajdź indeks najmniejszej liczby
+    int minIndex = findMinIndex(sequence, maxMinDiffs);
+
+    // Wynik
+    if (minIndex != -1) {
+        cout << "Indeks najmniejszej liczby: " << minIndex << endl;
+    } else {
+        cout << "Nie można jednoznacznie określić najmniejszej liczby." << endl;
+    }
 
     return 0;
 }
