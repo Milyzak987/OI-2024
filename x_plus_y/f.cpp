@@ -1,78 +1,38 @@
-#include <bits/stdc++.h>
-using namespace std;
+#include <iostream>
+#include <vector>
+#include <numeric> // dla std::partial_sum
 
-const int MAXN = 1e6 + 5;
+int findIndexOfMinimum(const std::vector<int>& differences) {
+    int n = differences.size() + 1; // liczba elementów ciągu
+    std::vector<int> values(n, 0); // ciąg wartości względnych
 
-vector<int> tree[MAXN];
-int start[MAXN], finish[MAXN], euler[MAXN], result[MAXN];
-int n, timer = 0;
-
-// Segment Tree
-vector<int> segTree(4 * MAXN, 0);
-
-void update(int idx, int val, int l, int r, int pos) {
-    if (l == r) {
-        segTree[pos] += val;
-        return;
+    // Odtwarzamy wartości względne
+    for (int i = 1; i < n; ++i) {
+        values[i] = values[i - 1] + differences[i - 1];
     }
-    int mid = (l + r) / 2;
-    if (idx <= mid) {
-        update(idx, val, l, mid, 2 * pos + 1);
-    } else {
-        update(idx, val, mid + 1, r, 2 * pos + 2);
-    }
-    segTree[pos] = segTree[2 * pos + 1] + segTree[2 * pos + 2];
-}
 
-int query(int ql, int qr, int l, int r, int pos) {
-    if (ql > r || qr < l) return 0;
-    if (ql <= l && r <= qr) return segTree[pos];
-    int mid = (l + r) / 2;
-    return query(ql, qr, l, mid, 2 * pos + 1) +
-           query(ql, qr, mid + 1, r, 2 * pos + 2);
-}
+    // Znajdujemy indeks najmniejszej wartości
+    int minIndex = 0;
+    int minValue = values[0];
 
-// DFS to create Euler Tour
-void dfs(int node, int parent) {
-    start[node] = ++timer;
-    euler[timer] = node;
-    for (int child : tree[node]) {
-        if (child != parent) {
-            dfs(child, node);
+    for (int i = 1; i < n; ++i) {
+        if (values[i] < minValue) {
+            minValue = values[i];
+            minIndex = i;
         }
     }
-    finish[node] = timer;
+
+    return minIndex; // indeks najmniejszej liczby
 }
 
 int main() {
-    ios::sync_with_stdio(false);
-    cin.tie(0);
+    // Przykład danych wejściowych
+    std::vector<int> differences = {2, -3, 1, -4, 3}; // różnice między kolejnymi elementami ciągu
 
-    // Input
-    cin >> n;
-    for (int i = 1; i < n; i++) {
-        int a, b;
-        cin >> a >> b;
-        tree[a].push_back(b);
-        tree[b].push_back(a);
-    }
+    // Wyznaczenie indeksu najmniejszego elementu
+    int minIndex = findIndexOfMinimum(differences);
 
-    // Create Euler Tour
-    dfs(1, -1);
-
-    // Process each node
-    for (int i = 1; i <= n; i++) {
-        int node = euler[i];
-        // Query to find count of nodes with IDs smaller than current node in its subtree
-        result[node] = query(1, node - 1, 1, n, 0);
-        // Update Segment Tree for the current node
-        update(node, 1, 1, n, 0);
-    }
-
-    // Output results
-    for (int i = 1; i <= n; i++) {
-        cout << result[i] << "\n";
-    }
+    std::cout << "Indeks najmniejszej liczby w ciagu: " << minIndex << std::endl;
 
     return 0;
 }
