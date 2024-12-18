@@ -7,7 +7,7 @@ const int MAXN = 1007; // Maximum size of the array
 vector<int> arr(MAXN); // Global array of size MAXN
 deque<pair<int, int>> ans; // Global deque to store XOR operations
 
-// Perform XOR operation and record it in the deque
+// Perform XOR swap for two consecutive indices and record the operation
 void applyXOR(int i, int j) {
     arr[i] ^= arr[j];
     arr[j] ^= arr[i];
@@ -15,38 +15,44 @@ void applyXOR(int i, int j) {
     ans.emplace_back(i, j); // Record the XOR operation
 }
 
-// Merge function with XOR-based swapping
+// Bubble a value at `idx` to the correct position by swapping consecutive elements
+void bubbleToPosition(int idx, int target) {
+    while (idx > target) {
+        applyXOR(idx - 1, idx);
+        idx--;
+    }
+}
+
+// Merge function: merge two sorted halves by swapping consecutive numbers
 void merge(int left, int mid, int right) {
-    vector<int> temp;
+    vector<int> merged;
     int i = left, j = mid + 1;
 
-    // Merge elements in sorted order
+    // Temporary array to store sorted elements
     while (i <= mid && j <= right) {
         if (arr[i] <= arr[j]) {
-            temp.push_back(arr[i]);
-            i++;
+            merged.push_back(arr[i++]);
         } else {
-            temp.push_back(arr[j]);
-            j++;
+            merged.push_back(arr[j++]);
         }
     }
 
-    // Copy remaining elements
+    // Add remaining elements from the left half
     while (i <= mid) {
-        temp.push_back(arr[i]);
-        i++;
-    }
-    while (j <= right) {
-        temp.push_back(arr[j]);
-        j++;
+        merged.push_back(arr[i++]);
     }
 
-    // Write sorted elements back to the original array
-    for (int k = 0; k < temp.size(); k++) {
-        if (arr[left + k] != temp[k]) {
-            // Use XOR swaps to update the array
-            applyXOR(left + k, left + k); // Fake XOR operation for consistency
-            arr[left + k] = temp[k];
+    // Add remaining elements from the right half
+    while (j <= right) {
+        merged.push_back(arr[j++]);
+    }
+
+    // Bubble elements back into the original array
+    for (int k = 0; k < merged.size(); k++) {
+        if (arr[left + k] != merged[k]) {
+            // Bubble the correct value into position
+            bubbleToPosition(left + k, left + k - 1);
+            arr[left + k] = merged[k];
         }
     }
 }
@@ -65,11 +71,6 @@ void mergeSort(int left, int right) {
     merge(left, mid, right);
 }
 
-// Main function to sort the array
-void sortArray(int n) {
-    mergeSort(0, n - 1);
-}
-
 // Driver function
 int main() {
     int n; // Size of the input array
@@ -84,7 +85,7 @@ int main() {
     cout << endl;
 
     // Sort the array
-    sortArray(n);
+    mergeSort(0, n - 1);
 
     cout << "Sorted Array: ";
     for (int i = 0; i < n; i++) cout << arr[i] << " ";
