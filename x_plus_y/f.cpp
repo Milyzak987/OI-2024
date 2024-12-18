@@ -2,25 +2,44 @@
 #include <vector>
 using namespace std;
 
-void sortWithXOR(vector<int>& arr) {
-    int n = arr.size();
-    bool swapped;
+// Function to sort numbers by the current bit
+void sortByBit(vector<int>& arr, int bit) {
+    if (bit < 0 || arr.size() <= 1) return;
 
-    // Perform a bubble sort-like algorithm with XOR as the adjustment
-    do {
-        swapped = false;
-        for (int i = 0; i < n - 1; i++) {
-            if (arr[i] > arr[i + 1]) {
-                // Apply XOR operations to make arr[i] <= arr[i + 1]
-                arr[i] = arr[i] ^ arr[i + 1];
-                arr[i + 1] = arr[i] ^ arr[i + 1];
-                arr[i] = arr[i] ^ arr[i + 1];
-                swapped = true;
-            }
+    // Partition the array into two groups based on the current bit
+    vector<int> zeroGroup, oneGroup;
+    for (int num : arr) {
+        if ((num & (1 << bit)) == 0) {
+            zeroGroup.push_back(num); // Bit is 0
+        } else {
+            oneGroup.push_back(num); // Bit is 1
         }
-    } while (swapped);
+    }
+
+    // Recursively sort both groups for the next less significant bit
+    sortByBit(zeroGroup, bit - 1);
+    sortByBit(oneGroup, bit - 1);
+
+    // Merge the two groups back
+    arr.clear();
+    arr.insert(arr.end(), zeroGroup.begin(), zeroGroup.end());
+    arr.insert(arr.end(), oneGroup.begin(), oneGroup.end());
 }
 
+// Main function to sort the array
+void sortArray(vector<int>& arr) {
+    if (arr.empty()) return;
+
+    // Determine the maximum number of bits needed (based on the largest number)
+    int maxNum = *max_element(arr.begin(), arr.end());
+    int maxBit = 0;
+    while ((1 << maxBit) <= maxNum) maxBit++;
+
+    // Sort starting from the most significant bit
+    sortByBit(arr, maxBit - 1);
+}
+
+// Driver function
 int main() {
     vector<int> arr = {7, 2, 5, 3, 8, 1};
 
@@ -28,7 +47,7 @@ int main() {
     for (int num : arr) cout << num << " ";
     cout << endl;
 
-    sortWithXOR(arr);
+    sortArray(arr);
 
     cout << "Sorted Array: ";
     for (int num : arr) cout << num << " ";
