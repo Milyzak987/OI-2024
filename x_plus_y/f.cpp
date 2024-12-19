@@ -1,7 +1,6 @@
 #include <iostream>
 #include <vector>
 #include <climits>
-#include <cmath>
 
 using namespace std;
 
@@ -24,14 +23,16 @@ int main() {
 
             for (int i = 0; i < n; ++i) {
                 for (int j = 0; j < m; ++j) {
-                    // Wiatraki są na środku pól
-                    double wiatrakX = i + 0.5;
-                    double wiatrakY = j + 0.5;
+                    // Skalowanie współrzędnych
+                    int wiatrakX = 2 * i + 1; // pozycja wiatraka w skali całkowitej
+                    int wiatrakY = 2 * j + 1; // pozycja wiatraka w skali całkowitej
+                    int obozX = 2 * a;       // pozycja obozu w skali całkowitej
+                    int obozY = 2 * b;       // pozycja obozu w skali całkowitej
 
-                    // Obóz jest w (a, b)
-                    double dx = 4.0 * (wiatrakX - a); // odległość pozioma
-                    double dy = 4.0 * (wiatrakY - b); // odległość pionowa
-                    long long d2 = dx * dx + dy * dy; // kwadrat odległości
+                    // Obliczanie odległości w skali całkowitej
+                    long long dx = 4 * (wiatrakX - obozX); // odległość pozioma
+                    long long dy = 4 * (wiatrakY - obozY); // odległość pionowa
+                    long long d2 = dx * dx + dy * dy;      // kwadrat odległości
 
                     cost += c[i][j] * d2;
                 }
