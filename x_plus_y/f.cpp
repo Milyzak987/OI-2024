@@ -1,101 +1,78 @@
 #include <iostream>
 #include <vector>
-#include <deque>
+#include <unordered_map>
 using namespace std;
 
-const int MAXN = 1007; // Maximum size of the array
-vector<int> arr(MAXN); // Global array of size MAXN
-deque<pair<int, int>> ans; // Global deque to store XOR operations
+class SegmentTree {
+    vector<unordered_map<int, int>> tree;
+    int n;
 
-// Perform XOR swap for two consecutive indices and record the operation
-void applyXOR(int i, int j) {
-    arr[i] ^= arr[j];
-    arr[j] ^= arr[i];
-    arr[i] ^= arr[j];
-    ans.emplace_back(i, j); // Record the XOR operation
-}
-
-// Bubble a value at `idx` to the correct position by swapping consecutive elements
-void bubbleToPosition(int idx, int target) {
-    while (idx > target) {
-        applyXOR(idx - 1, idx);
-        idx--;
-    }
-}
-
-// Merge function: merge two sorted halves by swapping consecutive numbers
-void merge(int left, int mid, int right) {
-    vector<int> merged;
-    int i = left, j = mid + 1;
-
-    // Temporary array to store sorted elements
-    while (i <= mid && j <= right) {
-        if (arr[i] <= arr[j]) {
-            merged.push_back(arr[i++]);
+    void build(vector<int>& arr, int v, int tl, int tr) {
+        if (tl == tr) {
+            tree[v][arr[tl]]++;
         } else {
-            merged.push_back(arr[j++]);
+            int tm = (tl + tr) / 2;
+            build(arr, v * 2, tl, tm);
+            build(arr, v * 2 + 1, tm + 1, tr);
+            merge(tree[v * 2], tree[v * 2 + 1], tree[v]);
         }
     }
 
-    // Add remaining elements from the left half
-    while (i <= mid) {
-        merged.push_back(arr[i++]);
-    }
-
-    // Add remaining elements from the right half
-    while (j <= right) {
-        merged.push_back(arr[j++]);
-    }
-
-    // Bubble elements back into the original array
-    for (int k = 0; k < merged.size(); k++) {
-        if (arr[left + k] != merged[k]) {
-            // Bubble the correct value into position
-            bubbleToPosition(left + k, left + k - 1);
-            arr[left + k] = merged[k];
+    void update(int v, int tl, int tr, int pos, int oldVal, int newVal) {
+        tree[v][oldVal]--;
+        if (tree[v][oldVal] == 0) {
+            tree[v].erase(oldVal);
+        }
+        tree[v][newVal]++;
+        if (tl != tr) {
+            int tm = (tl + tr) / 2;
+            if (pos <= tm)
+                update(v * 2, tl, tm, pos, oldVal, newVal);
+            else
+                update(v * 2 + 1, tm + 1, tr, pos, oldVal, newVal);
         }
     }
-}
 
-// Recursive merge sort function
-void mergeSort(int left, int right) {
-    if (left >= right) return;
+    int query(int v, int tl, int tr, int l, int r, int x) {
+        if (l > r) return 0;
+        if (l == tl && r == tr) {
+            return tree[v].count(x) ? tree[v][x] : 0;
+        }
+        int tm = (tl + tr) / 2;
+        return query(v * 2, tl, tm, l, min(r, tm), x) +
+               query(v * 2 + 1, tm + 1, tr, max(l, tm + 1), r, x);
+    }
 
-    int mid = left + (right - left) / 2;
+    void merge(const unordered_map<int, int>& left, const unordered_map<int, int>& right, unordered_map<int, int>& result) {
+        result = left;
+        for (const auto& [key, value] : right) {
+            result[key] += value;
+        }
+    }
 
-    // Recursively sort the left and right halves
-    mergeSort(left, mid);
-    mergeSort(mid + 1, right);
+public:
+    SegmentTree(vector<int>& arr) {
+        n = arr.size();
+        tree.resize(4 * n);
+        build(arr, 1, 0, n - 1);
+    }
 
-    // Merge the sorted halves
-    merge(left, mid, right);
-}
+    void update(int pos, int oldVal, int newVal) {
+        update(1, 0, n - 1, pos, oldVal, newVal);
+    }
 
-// Driver function
+    int query(int l, int r, int x) {
+        return query(1, 0, n - 1, l, r, x);
+    }
+};
+
 int main() {
-    int n; // Size of the input array
-    cout << "Enter the number of elements (<= 1007): ";
-    cin >> n;
+    vector<int> arr = {1, 2, 1, 3, 2, 1};
+    SegmentTree st(arr);
 
-    cout << "Enter the elements: ";
-    for (int i = 0; i < n; i++) cin >> arr[i];
-
-    cout << "Original Array: ";
-    for (int i = 0; i < n; i++) cout << arr[i] << " ";
-    cout << endl;
-
-    // Sort the array
-    mergeSort(0, n - 1);
-
-    cout << "Sorted Array: ";
-    for (int i = 0; i < n; i++) cout << arr[i] << " ";
-    cout << endl;
-
-    // Output the XOR operations
-    cout << "XOR Operations:" << endl;
-    for (auto [i, j] : ans) {
-        cout << "XOR applied between indices " << i << " and " << j << endl;
-    }
-
-    return 0;
+    // Przykładowe zapytania
+    cout << st.query(0, 5, 1) << endl; // Liczba "1" w całym przedziale
+    st.update(2, 1, 4);                // Zmieniamy arr[2] z 1 na 4
+    cout << st.query(0, 5, 1) << endl; // Liczba "1" w całym przedziale po zmianie
+    cout << st.query(1, 3, 2) << endl; // Liczba "2" w przedziale [1, 3]
 }
