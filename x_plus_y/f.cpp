@@ -1,6 +1,7 @@
 #include <iostream>
 #include <vector>
 #include <climits>
+#include <cmath>
 
 using namespace std;
 
@@ -23,9 +24,15 @@ int main() {
 
             for (int i = 0; i < n; ++i) {
                 for (int j = 0; j < m; ++j) {
-                    long long di = 4 * abs(i - a); // odległość pozioma
-                    long long dj = 4 * abs(j - b); // odległość pionowa
-                    long long d2 = di * di + dj * dj; // kwadrat odległości
+                    // Wiatraki są na środku pól
+                    double wiatrakX = i + 0.5;
+                    double wiatrakY = j + 0.5;
+
+                    // Obóz jest w (a, b)
+                    double dx = 4.0 * (wiatrakX - a); // odległość pozioma
+                    double dy = 4.0 * (wiatrakY - b); // odległość pionowa
+                    long long d2 = dx * dx + dy * dy; // kwadrat odległości
+
                     cost += c[i][j] * d2;
                 }
             }
