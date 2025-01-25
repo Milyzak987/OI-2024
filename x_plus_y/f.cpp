@@ -2,8 +2,6 @@
 using namespace std;
 using ll = long long;
 
-const int MAXN = 2e5 + 7;
-
 void solve() {
     ios_base::sync_with_stdio(0);
     cin.tie(0);
@@ -15,25 +13,28 @@ void solve() {
         ll l, r;
         cin >> l >> r;
 
+        // Sprawdzenie nieskończonej liczby rozwiązań
         if (l <= 0 && r >= 0) {
-            cout << -1 << '\n'; // Infinite solutions
+            cout << -1 << '\n';
             continue;
         }
 
-        ll result = 0;
-        for (ll s = l; s <= r; ++s) {
-            // Count pairs (x1, x2) such that x1 + x2 = -b and x1 * x2 = c
-            // and b + c = s
-            // Rearrange: b = s - c
-            for (ll x1 = 1; x1 * x1 <= abs(s); ++x1) {
-                if (s % x1 == 0) {
-                    ll x2 = s / x1;
-                    if (x1 <= x2) result++;
+        ll count = 0;
+
+        // Iteracja po x1 i x2
+        for (ll x1 = 1; x1 * x1 <= r; ++x1) {
+            for (ll x2 = x1; x1 + x2 <= r; ++x2) {
+                ll b = -(x1 + x2);
+                ll c = x1 * x2;
+                ll sum = b + c;
+
+                if (l <= sum && sum <= r) {
+                    count++;
                 }
             }
         }
 
-        cout << result << '\n';
+        cout << count << '\n';
     }
 }
 
