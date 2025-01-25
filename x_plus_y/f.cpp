@@ -13,7 +13,7 @@ void solve() {
         ll l, r;
         cin >> l >> r;
 
-        // Sprawdzenie nieskończonej liczby rozwiązań
+        // Sprawdzenie nieskończoności
         if (l <= 0 && r >= 0) {
             cout << -1 << '\n';
             continue;
@@ -23,14 +23,13 @@ void solve() {
 
         // Iteracja po x1 i x2
         for (ll x1 = 1; x1 * x1 <= r; ++x1) {
-            for (ll x2 = x1; x1 + x2 <= r; ++x2) {
+            for (ll x2 = x1; x2 <= r; ++x2) {
                 ll b = -(x1 + x2);
                 ll c = x1 * x2;
                 ll sum = b + c;
 
-                if (l <= sum && sum <= r) {
-                    count++;
-                }
+                if (sum < l) break; // Jeśli sum < l, dalsze x2 nie będą poprawne
+                if (sum <= r) count++;
             }
         }
 
