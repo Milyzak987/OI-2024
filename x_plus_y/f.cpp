@@ -1,43 +1,77 @@
-#include <bits/stdc++.h>
+#include <iostream>
+#include <set>
+#include <vector>
 using namespace std;
-using ll = long long;
 
-void solve() {
-    ios_base::sync_with_stdio(0);
-    cin.tie(0);
+// Funkcja obliczająca liczbę par dla danego przedziału l, r
+int countPairs(int l, int r) {
+    set<pair<int, int>> uniquePairs;
 
-    int q;
-    cin >> q;
-
-    while (q--) {
-        ll l, r;
-        cin >> l >> r;
-
-        // Sprawdzenie nieskończoności
-        if (l <= 0 && r >= 0) {
-            cout << -1 << '\n';
-            continue;
-        }
-
-        ll count = 0;
-
-        // Iteracja po x1 i x2
-        for (ll x1 = 1; x1 * x1 <= r; ++x1) {
-            for (ll x2 = x1; x2 <= r; ++x2) {
-                ll b = -(x1 + x2);
-                ll c = x1 * x2;
-                ll sum = b + c;
-
-                if (sum < l) break; // Jeśli sum < l, dalsze x2 nie będą poprawne
-                if (sum <= r) count++;
+    for (int x1 = -1000; x1 <= 1000; x1++) {
+        for (int x2 = x1; x2 <= 1000; x2++) {
+            int b = -(x1 + x2);
+            int c = x1 * x2;
+            int sum = b + c;
+            if (l <= sum && sum <= r) {
+                uniquePairs.insert({x1, x2});
             }
         }
-
-        cout << count << '\n';
     }
+
+    return uniquePairs.size();
 }
 
 int main() {
-    solve();
+    int q;
+    cin >> q;
+    while (q--) {
+        int l, r;
+        cin >> l >> r;
+        int result = countPairs(l, r);
+        cout << result << endl;
+    }
+    return 0;
+}
+
+
+
+
+#include <iostream>
+#include <cmath>
+#include <limits>
+using namespace std;
+
+// Funkcja obliczająca liczbę par
+long long countPairsOptimized(int l, int r) {
+    if (r - l >= 1000) {
+        return -1; // Nieskończoność, gdy zakres pozwala na dowolne pary
+    }
+
+    long long count = 0;
+
+    for (int x1 = -1000000; x1 <= 1000000; x1++) {
+        for (int x2 = x1; x2 <= 1000000; x2++) {
+            int b = -(x1 + x2);
+            int c = x1 * x2;
+            int sum = b + c;
+            if (l <= sum && sum <= r) {
+                count++;
+            }
+            if (sum > r) break; // Optymalizacja - nie sprawdzaj, jeśli suma już wykracza poza zakres
+        }
+    }
+
+    return count;
+}
+
+int main() {
+    int q;
+    cin >> q;
+    while (q--) {
+        int l, r;
+        cin >> l >> r;
+        long long result = countPairsOptimized(l, r);
+        cout << result << endl;
+    }
     return 0;
 }
