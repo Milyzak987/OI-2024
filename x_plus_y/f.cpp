@@ -1,77 +1,42 @@
-#include <iostream>
-#include <set>
-#include <vector>
+#include <bits/stdc++.h>
 using namespace std;
+typedef long long ll;
 
-// Funkcja obliczająca liczbę par dla danego przedziału l, r
-int countPairs(int l, int r) {
-    set<pair<int, int>> uniquePairs;
+void solve() {
+    ll l, r;
+    cin >> l >> r;
 
-    for (int x1 = -1000; x1 <= 1000; x1++) {
-        for (int x2 = x1; x2 <= 1000; x2++) {
-            int b = -(x1 + x2);
-            int c = x1 * x2;
-            int sum = b + c;
+    if (l <= 0 && r >= 0) {
+        cout << -1 << "\n";
+        return;
+    }
+
+    ll res = 0;
+    ll limitL = -abs(l * l);
+    ll limitR = abs(r * r);
+
+    for (ll x1 = limitL; x1 <= limitR; x1++) {
+        for (ll x2 = x1; x2 <= limitR; x2++) {
+            ll b = -(x1 + x2);
+            ll c = x1 * x2;
+            ll sum = b + c;
             if (l <= sum && sum <= r) {
-                uniquePairs.insert({x1, x2});
+                res++;
             }
         }
     }
 
-    return uniquePairs.size();
+    cout << res << "\n";
 }
 
 int main() {
-    int q;
+    ios_base::sync_with_stdio(0);
+    cin.tie(0);
+
+    ll q;
     cin >> q;
     while (q--) {
-        int l, r;
-        cin >> l >> r;
-        int result = countPairs(l, r);
-        cout << result << endl;
-    }
-    return 0;
-}
-
-
-
-
-#include <iostream>
-#include <cmath>
-#include <limits>
-using namespace std;
-
-// Funkcja obliczająca liczbę par
-long long countPairsOptimized(int l, int r) {
-    if (r - l >= 1000) {
-        return -1; // Nieskończoność, gdy zakres pozwala na dowolne pary
-    }
-
-    long long count = 0;
-
-    for (int x1 = -1000000; x1 <= 1000000; x1++) {
-        for (int x2 = x1; x2 <= 1000000; x2++) {
-            int b = -(x1 + x2);
-            int c = x1 * x2;
-            int sum = b + c;
-            if (l <= sum && sum <= r) {
-                count++;
-            }
-            if (sum > r) break; // Optymalizacja - nie sprawdzaj, jeśli suma już wykracza poza zakres
-        }
-    }
-
-    return count;
-}
-
-int main() {
-    int q;
-    cin >> q;
-    while (q--) {
-        int l, r;
-        cin >> l >> r;
-        long long result = countPairsOptimized(l, r);
-        cout << result << endl;
+        solve();
     }
     return 0;
 }
