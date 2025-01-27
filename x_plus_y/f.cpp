@@ -1,43 +1,36 @@
 #include <iostream>
 #include <vector>
-#include <algorithm>
-#include <map>
+#include <unordered_map>
 using namespace std;
 
-// Funkcja przetwarzająca zadanie
-vector<int> solve(int n, int m, int q, vector<pair<int, int>> tasks, vector<long long> queries) {
+vector<int> solve(int n, int m, int q, const vector<pair<int, int>>& tasks, const vector<long long>& queries) {
     vector<int> machine_order;  // Kolejność uruchamiania maszyn
-    
+
     // Generowanie kolejności maszyn
-    for (auto &[l, r] : tasks) {
-        for (int i = l; i <= r; ++i) {
+    for (const auto& task : tasks) {
+        for (int i = task.first; i <= task.second; ++i) {
             machine_order.push_back(i);
         }
     }
-    
+
     int total_days = machine_order.size();
-    vector<long long> last_used(n + 1, -1);  // Ostatni dzień użycia maszyny
-    vector<long long> inspections(total_days + 1, 0);  // Liczba inspekcji do dnia t
+    vector<int> results(q, 0);  // Wyniki dla zapytań
 
-    // Obliczanie liczby inspekcji dla wszystkich dni
-    for (int i = 0; i < total_days; ++i) {
-        int machine = machine_order[i];
-        if (last_used[machine] != -1) {
-            inspections[i + 1] = inspections[i] + (i - last_used[machine] > 0);
-        } else {
-            inspections[i + 1] = inspections[i];
-        }
-        last_used[machine] = i;
-    }
+    // Obsługa zapytań
+    for (int qi = 0; qi < q; ++qi) {
+        long long s = queries[qi];
+        vector<int> last_used(n + 1, -1);  // Ostatni dzień użycia każdej maszyny
+        int inspection_count = 0;
 
-    // Przetwarzanie zapytań
-    vector<int> results;
-    for (long long s : queries) {
-        if (s >= total_days) {
-            results.push_back(0);
-        } else {
-            results.push_back(inspections[total_days] - inspections[s]);
+        for (int day = 0; day < total_days; ++day) {
+            int machine = machine_order[day];
+            if (last_used[machine] != -1 && day - last_used[machine] > s) {
+                ++inspection_count;
+            }
+            last_used[machine] = day;
         }
+
+        results[qi] = inspection_count;
     }
 
     return results;
@@ -45,8 +38,9 @@ vector<int> solve(int n, int m, int q, vector<pair<int, int>> tasks, vector<long
 
 int main() {
     ios::sync_with_stdio(false);
-    cin.tie(0);
+    cin.tie(nullptr);
 
+    // Wczytywanie danych wejściowych
     int n, m, q;
     cin >> n >> m >> q;
 
@@ -60,8 +54,10 @@ int main() {
         cin >> queries[i];
     }
 
+    // Wywołanie funkcji rozwiązującej
     vector<int> result = solve(n, m, q, tasks, queries);
 
+    // Wyświetlenie wyników
     for (int res : result) {
         cout << res << " ";
     }
