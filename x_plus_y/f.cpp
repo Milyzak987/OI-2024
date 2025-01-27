@@ -1,25 +1,34 @@
 #include <iostream>
-#include <vector>
-#include <unordered_map>
+#include <cstring> // Do użycia memset
 using namespace std;
 
-vector<int> solve(int n, int m, int q, const vector<pair<int, int>>& tasks, const vector<long long>& queries) {
-    vector<int> machine_order;  // Kolejność uruchamiania maszyn
+const int MAXN = 2e5 + 7; // Maksymalna liczba maszyn/dni
+const int MAXQ = 2e5 + 7; // Maksymalna liczba zapytań
+
+// Globalne tablice
+int machine_order[MAXN];  // Kolejność uruchamiania maszyn
+int last_used[MAXN];      // Ostatni dzień użycia maszyn
+int results[MAXQ];        // Wyniki zapytań
+pair<int, int> tasks[MAXN]; // Zakresy zadań
+long long queries[MAXQ];  // Wartości bezpieczeństwa S
+
+void solve(int n, int m, int q) {
+    int total_days = 0;
 
     // Generowanie kolejności maszyn
-    for (const auto& task : tasks) {
-        for (int i = task.first; i <= task.second; ++i) {
-            machine_order.push_back(i);
+    for (int i = 0; i < m; ++i) {
+        for (int j = tasks[i].first; j <= tasks[i].second; ++j) {
+            machine_order[total_days++] = j;
         }
     }
-
-    int total_days = machine_order.size();
-    vector<int> results(q, 0);  // Wyniki dla zapytań
 
     // Obsługa zapytań
     for (int qi = 0; qi < q; ++qi) {
         long long s = queries[qi];
-        vector<int> last_used(n + 1, -1);  // Ostatni dzień użycia każdej maszyny
+
+        // Resetowanie tablicy `last_used`
+        memset(last_used, -1, sizeof(last_used));
+
         int inspection_count = 0;
 
         for (int day = 0; day < total_days; ++day) {
@@ -32,8 +41,6 @@ vector<int> solve(int n, int m, int q, const vector<pair<int, int>>& tasks, cons
 
         results[qi] = inspection_count;
     }
-
-    return results;
 }
 
 int main() {
@@ -44,22 +51,20 @@ int main() {
     int n, m, q;
     cin >> n >> m >> q;
 
-    vector<pair<int, int>> tasks(m);
     for (int i = 0; i < m; ++i) {
         cin >> tasks[i].first >> tasks[i].second;
     }
 
-    vector<long long> queries(q);
     for (int i = 0; i < q; ++i) {
         cin >> queries[i];
     }
 
     // Wywołanie funkcji rozwiązującej
-    vector<int> result = solve(n, m, q, tasks, queries);
+    solve(n, m, q);
 
     // Wyświetlenie wyników
-    for (int res : result) {
-        cout << res << " ";
+    for (int i = 0; i < q; ++i) {
+        cout << results[i] << " ";
     }
     cout << "\n";
 
