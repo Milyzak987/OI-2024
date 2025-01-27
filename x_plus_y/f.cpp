@@ -1,42 +1,60 @@
-#include <bits/stdc++.h>
+#include <iostream>
 using namespace std;
 typedef long long ll;
 
-void solve() {
-    ll l, r;
-    cin >> l >> r;
+const int R = 1 << 18;
+ll tree[R * 2];
 
-    if (l <= 0 && r >= 0) {
-        cout << -1 << "\n";
-        return;
+void update(int l, int r, ll x) {
+    l += R;
+    r += R;
+    tree[l] += x;
+    if (l != r) {
+        tree[r] += x + (r - l); // Dodajemy rosnącą wartość w punkcie r
     }
-
-    ll res = 0;
-    ll limitL = -abs(l * l);
-    ll limitR = abs(r * r);
-
-    for (ll x1 = limitL; x1 <= limitR; x1++) {
-        for (ll x2 = x1; x2 <= limitR; x2++) {
-            ll b = -(x1 + x2);
-            ll c = x1 * x2;
-            ll sum = b + c;
-            if (l <= sum && sum <= r) {
-                res++;
-            }
+    while (l / 2 != r / 2) {
+        if (l % 2 == 0) { // Prawy sąsiad na lewym poddrzewie
+            tree[l + 1] += x;
         }
+        if (r % 2 == 1) { // Lewy sąsiad na prawym poddrzewie
+            tree[r - 1] += x + (r - l); // Zwiększ o różnicę
+        }
+        l /= 2;
+        r /= 2;
     }
+}
 
-    cout << res << "\n";
+ll query(int v) {
+    v += R;
+    ll res = 0;
+    while (v > 0) {
+        res += tree[v];
+        v /= 2;
+    }
+    return res;
 }
 
 int main() {
     ios_base::sync_with_stdio(0);
     cin.tie(0);
 
-    ll q;
-    cin >> q;
+    int n, q;
+    cin >> n >> q;
+
     while (q--) {
-        solve();
+        int type;
+        cin >> type;
+        if (type == 1) { // Dodaj na przedziale
+            int l, r;
+            ll x;
+            cin >> l >> r >> x;
+            update(l, r, x);
+        } else if (type == 2) { // Odczytaj wartość z punktu
+            int v;
+            cin >> v;
+            cout << query(v) << '\n';
+        }
     }
+
     return 0;
 }
