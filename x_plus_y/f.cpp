@@ -1,79 +1,71 @@
-#include <bits/stdc++.h>
+#include <iostream>
+#include <vector>
+#include <algorithm>
+#include <map>
 using namespace std;
 
-const int MAXN = 2e5 + 7;
-long long tree[4 * MAXN], lazy_add[4 * MAXN], lazy_inc[4 * MAXN];
+// Funkcja przetwarzająca zadanie
+vector<int> solve(int n, int m, int q, vector<pair<int, int>> tasks, vector<long long> queries) {
+    vector<int> machine_order;  // Kolejność uruchamiania maszyn
+    
+    // Generowanie kolejności maszyn
+    for (auto &[l, r] : tasks) {
+        for (int i = l; i <= r; ++i) {
+            machine_order.push_back(i);
+        }
+    }
+    
+    int total_days = machine_order.size();
+    vector<long long> last_used(n + 1, -1);  // Ostatni dzień użycia maszyny
+    vector<long long> inspections(total_days + 1, 0);  // Liczba inspekcji do dnia t
 
-void propagate(int node, int l, int r) {
-    int mid = (l + r) / 2;
-    int left = node * 2, right = node * 2 + 1;
-
-    // Apply lazy_add and lazy_inc to current node
-    tree[node] += lazy_add[node] * (r - l + 1) + lazy_inc[node] * (r - l) * (r - l + 1) / 2;
-
-    // Pass lazy updates to children
-    if (l != r) {
-        lazy_add[left] += lazy_add[node];
-        lazy_add[right] += lazy_add[node] + lazy_inc[node] * (mid - l + 1);
-        lazy_inc[left] += lazy_inc[node];
-        lazy_inc[right] += lazy_inc[node];
+    // Obliczanie liczby inspekcji dla wszystkich dni
+    for (int i = 0; i < total_days; ++i) {
+        int machine = machine_order[i];
+        if (last_used[machine] != -1) {
+            inspections[i + 1] = inspections[i] + (i - last_used[machine] > 0);
+        } else {
+            inspections[i + 1] = inspections[i];
+        }
+        last_used[machine] = i;
     }
 
-    lazy_add[node] = 0;
-    lazy_inc[node] = 0;
-}
-
-void update(int node, int l, int r, int ql, int qr, long long add, long long inc) {
-    propagate(node, l, r);
-
-    if (qr < l || ql > r) return; // Out of range
-    if (ql <= l && r <= qr) { // Fully in range
-        lazy_add[node] += add;
-        lazy_inc[node] += inc;
-        propagate(node, l, r);
-        return;
+    // Przetwarzanie zapytań
+    vector<int> results;
+    for (long long s : queries) {
+        if (s >= total_days) {
+            results.push_back(0);
+        } else {
+            results.push_back(inspections[total_days] - inspections[s]);
+        }
     }
 
-    // Partially in range
-    int mid = (l + r) / 2;
-    update(node * 2, l, mid, ql, qr, add, inc);
-    update(node * 2 + 1, mid + 1, r, ql, qr, add + inc * max(0, mid - max(ql, l) + 1), inc);
-    tree[node] = tree[node * 2] + tree[node * 2 + 1];
-}
-
-long long query(int node, int l, int r, int idx) {
-    propagate(node, l, r);
-
-    if (l == r) return tree[node];
-    int mid = (l + r) / 2;
-
-    if (idx <= mid)
-        return query(node * 2, l, mid, idx);
-    else
-        return query(node * 2 + 1, mid + 1, r, idx);
+    return results;
 }
 
 int main() {
-    ios_base::sync_with_stdio(0);
+    ios::sync_with_stdio(false);
     cin.tie(0);
 
-    int n, q;
-    cin >> n >> q; // liczba punktów i liczba zapytań
+    int n, m, q;
+    cin >> n >> m >> q;
 
-    while (q--) {
-        int type;
-        cin >> type;
-
-        if (type == 1) { // Dodaj na przedziale
-            int l, r;
-            cin >> l >> r;
-            update(1, 1, n, l, r, 1, 1);
-        } else if (type == 2) { // Odczytaj wartość z punktu
-            int idx;
-            cin >> idx;
-            cout << query(1, 1, n, idx) << '\n';
-        }
+    vector<pair<int, int>> tasks(m);
+    for (int i = 0; i < m; ++i) {
+        cin >> tasks[i].first >> tasks[i].second;
     }
+
+    vector<long long> queries(q);
+    for (int i = 0; i < q; ++i) {
+        cin >> queries[i];
+    }
+
+    vector<int> result = solve(n, m, q, tasks, queries);
+
+    for (int res : result) {
+        cout << res << " ";
+    }
+    cout << "\n";
 
     return 0;
 }
