@@ -1,72 +1,101 @@
-#include <iostream>
-#include <cstring> // Do użycia memset
+#include "szylib.h"
+#include <vector>
+#include <string>
+
 using namespace std;
 
-const int MAXN = 2e5 + 7; // Maksymalna liczba maszyn/dni
-const int MAXQ = 2e5 + 7; // Maksymalna liczba zapytań
+// Funkcja kodowania wiadomości
+void Zaszyfruj(int X, int Y, int N, string S) {
+    vector<vector<int>> T(8, vector<int>(8, 0)); // Tablica do przechowywania bitów
+    int row = 0, col = 0;
 
-// Globalne tablice
-int machine_order[MAXN];  // Kolejność uruchamiania maszyn
-int last_used[MAXN];      // Ostatni dzień użycia maszyn
-int results[MAXQ];        // Wyniki zapytań
-pair<int, int> tasks[MAXN]; // Zakresy zadań
-long long queries[MAXQ];  // Wartości bezpieczeństwa S
+    // Pomocnicza funkcja do znalezienia następnego wolnego pola (omija X i Y)
+    auto next_valid = [&]() {
+        do {
+            if (++col == 8) {
+                col = 0;
+                ++row;
+            }
+        } while (row == X || col == Y);
+    };
 
-void solve(int n, int m, int q) {
-    int total_days = 0;
+    // Zakodowanie wiadomości
+    for (int i = 0; i < N; ++i) {
+        T[row][col] = (S[i] == 'B' ? 1 : 0);
+        next_valid();
+    }
 
-    // Generowanie kolejności maszyn
-    for (int i = 0; i < m; ++i) {
-        for (int j = tasks[i].first; j <= tasks[i].second; ++j) {
-            machine_order[total_days++] = j;
+    // Obliczenie sum kontrolnych
+    vector<int> row_parity(8, 0), col_parity(8, 0);
+    for (int i = 0; i < 8; ++i) {
+        for (int j = 0; j < 8; ++j) {
+            row_parity[i] ^= T[i][j];
+            col_parity[j] ^= T[i][j];
         }
     }
 
-    // Obsługa zapytań
-    for (int qi = 0; qi < q; ++qi) {
-        long long s = queries[qi];
+    // Wpisanie bitów parzystości do uszkodzonych miejsc
+    T[X][Y] = 0; // Możemy wpisać cokolwiek, bo to i tak się zepsuje
+    for (int i = 0; i < 8; ++i) {
+        if (i != X) T[i][Y] = row_parity[i]; // Parzystość wiersza
+        if (i != Y) T[X][i] = col_parity[i]; // Parzystość kolumny
+    }
 
-        // Resetowanie tablicy `last_used`
-        memset(last_used, -1, sizeof(last_used));
-
-        int inspection_count = 0;
-
-        for (int day = 0; day < total_days; ++day) {
-            int machine = machine_order[day];
-            if (last_used[machine] != -1 && day - last_used[machine] > s) {
-                ++inspection_count;
+    // Ustawienie kryształów
+    for (int i = 0; i < 8; ++i) {
+        for (int j = 0; j < 8; ++j) {
+            if (i != X && j != Y) {
+                Oznacz(i, j, T[i][j]);
             }
-            last_used[machine] = day;
         }
-
-        results[qi] = inspection_count;
     }
 }
 
-int main() {
-    ios::sync_with_stdio(false);
-    cin.tie(nullptr);
+// Funkcja dekodowania wiadomości
+string Odszyfruj(int N, vector<vector<int>> T) {
+    int X = -1, Y = -1;
 
-    // Wczytywanie danych wejściowych
-    int n, m, q;
-    cin >> n >> m >> q;
-
-    for (int i = 0; i < m; ++i) {
-        cin >> tasks[i].first >> tasks[i].second;
+    // Znalezienie X i Y przez analizę sum kontrolnych
+    vector<int> row_parity(8, 0), col_parity(8, 0);
+    for (int i = 0; i < 8; ++i) {
+        for (int j = 0; j < 8; ++j) {
+            row_parity[i] ^= T[i][j];
+            col_parity[j] ^= T[i][j];
+        }
     }
 
-    for (int i = 0; i < q; ++i) {
-        cin >> queries[i];
+    // Uszkodzony wiersz X → jedyny, gdzie suma parzystości się nie zgadza
+    for (int i = 0; i < 8; ++i) {
+        if (row_parity[i] != 0) {
+            X = i;
+            break;
+        }
     }
 
-    // Wywołanie funkcji rozwiązującej
-    solve(n, m, q);
-
-    // Wyświetlenie wyników
-    for (int i = 0; i < q; ++i) {
-        cout << results[i] << " ";
+    // Uszkodzona kolumna Y → jedyna, gdzie suma parzystości się nie zgadza
+    for (int j = 0; j < 8; ++j) {
+        if (col_parity[j] != 0) {
+            Y = j;
+            break;
+        }
     }
-    cout << "\n";
 
-    return 0;
+    // Odczytanie wiadomości
+    string result;
+    int row = 0, col = 0;
+    auto next_valid = [&]() {
+        do {
+            if (++col == 8) {
+                col = 0;
+                ++row;
+            }
+        } while (row == X || col == Y);
+    };
+
+    for (int i = 0; i < N; ++i) {
+        result += (T[row][col] == 1 ? 'B' : 'A');
+        next_valid();
+    }
+
+    return result;
 }
