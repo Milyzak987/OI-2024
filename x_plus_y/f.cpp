@@ -1,70 +1,77 @@
-#include <iostream>
-#include <vector>
-#include <queue>
-
+#include <bits/stdc++.h>
 using namespace std;
 
-const int MAX_N = 200000;
-vector<int> graph[MAX_N + 1];  // Lista sąsiedztwa
-int in_degree[MAX_N + 1];       // Stopnie wejściowe
-int result[MAX_N + 1];          // Wyniki dla każdego gracza
-int last_match[MAX_N + 1];      // Ostatni mecz, po którym określono rangę
+ios_base::sync_with_stdio(0);
+cin.tie(0);
+
+const int MAXN = 2e5 + 7;
+vector<int> graph[MAXN];
+
+struct Group {
+    int id, size;
+    bool can_split;
+};
+
+queue<Group> q;
+unordered_map<int, Group> active_groups;
+int group_counter = 0;
 
 int main() {
-    ios::sync_with_stdio(false);
-    cin.tie(nullptr);
+    int query_count;
+    cin >> query_count;
 
-    int n, m;
-    cin >> n >> m;
+    while (query_count--) {
+        char type;
+        cin >> type;
 
-    // Wczytanie meczów i budowanie grafu
-    for (int i = 0; i < m; i++) {
-        int x, y;
-        cin >> x >> y;
-        graph[y].push_back(x);
-        in_degree[x]++;
-    }
-
-    // Kolejka do BFS (sortowanie topologiczne)
-    queue<int> q;
-    for (int i = 1; i <= n; i++) {
-        if (in_degree[i] == 0) {
-            q.push(i);
-            last_match[i] = 0; // Gracze bez przegranych są określeni od początku
-        } else {
-            last_match[i] = -1; // Domyślnie ustawiamy jako nieokreślony
-        }
-    }
-
-    int matches_played = 0;
-    while (!q.empty()) {
-        matches_played++; // Liczymy, po ilu meczach znamy rangę
-        int size = q.size();
-        vector<int> current_nodes;
-
-        for (int i = 0; i < size; i++) {
-            int node = q.front();
-            q.pop();
-            current_nodes.push_back(node);
-        }
-
-        for (int node : current_nodes) {
-            result[node] = matches_played; // Zapisujemy moment określenia rangi
-            for (int neighbor : graph[node]) {
-                in_degree[neighbor]--;
-                if (in_degree[neighbor] == 0) {
-                    q.push(neighbor);
-                    last_match[neighbor] = matches_played;
+        if (type == 'D') {
+            int size, can_split;
+            cin >> size >> can_split;
+            ++group_counter;
+            Group new_group = {group_counter, size, can_split};
+            q.push(new_group);
+            active_groups[group_counter] = new_group;
+        } 
+        else if (type == 'R') {
+            int id;
+            cin >> id;
+            active_groups.erase(id);
+        } 
+        else if (type == 'P') {
+            long long seats;
+            cin >> seats;
+            
+            vector<pair<int, int>> result;
+            
+            while (!q.empty() && seats > 0) {
+                Group current = q.front();
+                if (active_groups.find(current.id) == active_groups.end()) {
+                    q.pop();
+                    continue;
                 }
+
+                if (current.size <= seats) {
+                    result.emplace_back(current.id, current.size);
+                    seats -= current.size;
+                    q.pop();
+                    active_groups.erase(current.id);
+                } 
+                else if (current.can_split) {
+                    result.emplace_back(current.id, seats);
+                    active_groups[current.id].size -= seats;
+                    seats = 0;
+                } 
+                else {
+                    break;
+                }
+            }
+
+            cout << result.size() << '\n';
+            for (auto &[id, count] : result) {
+                cout << id << ' ' << count << '\n';
             }
         }
     }
-
-    // Wypisanie wyniku
-    for (int i = 1; i <= n; i++) {
-        cout << last_match[i] << " ";
-    }
-    cout << "\n";
 
     return 0;
 }
