@@ -12,7 +12,7 @@ struct Group {
     bool can_split;
 };
 
-// Drzewo przedziałowe dla sumy liczności grup
+// Drzewo przedziałowe do przechowywania sumy liczności grup
 struct SegmentTree {
     vector<long long> tree;
     int size;
@@ -45,10 +45,11 @@ struct SegmentTree {
         return sum;
     }
 
-    int find_rightmost(int m) {
+    int find_first(int m) {
+        // Znajduje pierwszą grupę, która może się zmieścić
         int pos = 1;
         long long sum = 0;
-        if (tree[pos] < m) return -1; // Za mało osób w kolejce
+        if (tree[pos] < m) return -1;  // Nie ma wystarczająco osób w kolejce
 
         while (pos < size) {
             if (sum + tree[2 * pos] >= m) {
@@ -98,19 +99,19 @@ int main() {
             int idx = 0;
 
             while (remaining > 0) {
-                int rightmost = seg.find_rightmost(remaining);
-                if (rightmost == -1 || rightmost >= (int)groups.size()) break;
+                int first_group = seg.find_first(remaining);
+                if (first_group == -1 || first_group >= (int)groups.size()) break;
 
-                Group &g = groups[rightmost];
+                Group &g = groups[first_group];
                 if (g.size <= remaining) {
                     result.emplace_back(g.id, g.size);
                     remaining -= g.size;
-                    seg.update(rightmost, 0);
+                    seg.update(first_group, 0);
                 } 
                 else if (g.can_split) {
                     result.emplace_back(g.id, remaining);
                     g.size -= remaining;
-                    seg.update(rightmost, g.size);
+                    seg.update(first_group, g.size);
                     remaining = 0;
                 } 
                 else {
