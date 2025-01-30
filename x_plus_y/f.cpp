@@ -1,69 +1,121 @@
 #include <bits/stdc++.h>
 using namespace std;
 
+ios_base::sync_with_stdio(0);
+cin.tie(0);
+
+const int MAXN = 2e5 + 7;
+vector<int> graph[MAXN];
+
 struct Group {
-    int id;     // Numer grupy
-    int size;   // Liczba osób w grupie
-    bool canSplit; // Czy mogą się podzielić
+    int id, size;
+    bool can_split;
+};
+
+// Drzewo przedziałowe dla sumy liczności grup
+struct SegmentTree {
+    vector<long long> tree;
+    int size;
+
+    SegmentTree(int n) {
+        size = 1;
+        while (size < n) size *= 2;
+        tree.assign(2 * size, 0);
+    }
+
+    void update(int pos, int value) {
+        pos += size;
+        tree[pos] = value;
+        while (pos > 1) {
+            pos /= 2;
+            tree[pos] = tree[2 * pos] + tree[2 * pos + 1];
+        }
+    }
+
+    long long query(int left, int right) {
+        long long sum = 0;
+        left += size;
+        right += size;
+        while (left <= right) {
+            if (left % 2 == 1) sum += tree[left++];
+            if (right % 2 == 0) sum += tree[right--];
+            left /= 2;
+            right /= 2;
+        }
+        return sum;
+    }
+
+    int find_rightmost(int m) {
+        int pos = 1;
+        long long sum = 0;
+        if (tree[pos] < m) return -1; // Za mało osób w kolejce
+
+        while (pos < size) {
+            if (sum + tree[2 * pos] >= m) {
+                pos = 2 * pos;
+            } else {
+                sum += tree[2 * pos];
+                pos = 2 * pos + 1;
+            }
+        }
+        return pos - size;
+    }
 };
 
 int main() {
-    ios::sync_with_stdio(false);
-    cin.tie(nullptr);
-
     int q;
     cin >> q;
 
-    deque<Group> queue;  // Kolejka grup
-    unordered_map<int, bool> removed; // Lazy deletion dla usuwania grup
-    int groupId = 0; // Numerowanie grup
+    SegmentTree seg(MAXN);
+    vector<Group> groups;
+    unordered_map<int, int> index_map;  // Mapowanie ID grupy na jej pozycję w segmencie
+    int group_counter = 0;
 
     while (q--) {
         char type;
         cin >> type;
 
         if (type == 'D') {
-            int z, c;
-            cin >> z >> c;
-            queue.push_back({++groupId, z, c == 1});
-            removed[groupId] = false;  // Grupa jest aktywna
+            int size, can_split;
+            cin >> size >> can_split;
+            ++group_counter;
+            groups.push_back({group_counter, size, can_split});
+            index_map[group_counter] = groups.size() - 1;
+            seg.update(groups.size() - 1, size);
         } 
         else if (type == 'R') {
-            int i;
-            cin >> i;
-            removed[i] = true;  // Oznaczamy grupę jako usuniętą (lazy deletion)
+            int id;
+            cin >> id;
+            int idx = index_map[id];
+            seg.update(idx, 0);  // Oznaczamy grupę jako usuniętą
         } 
         else if (type == 'P') {
-            int m;
-            cin >> m;
+            long long seats;
+            cin >> seats;
 
-            vector<pair<int, int>> result;  // Lista grup w pontonie
-            while (m > 0 && !queue.empty()) {
-                Group front = queue.front();
-                queue.pop_front();
+            vector<pair<int, int>> result;
+            long long remaining = seats;
+            int idx = 0;
 
-                if (removed[front.id]) continue; // Lazy deletion - pomijamy usunięte grupy
+            while (remaining > 0) {
+                int rightmost = seg.find_rightmost(remaining);
+                if (rightmost == -1 || rightmost >= (int)groups.size()) break;
 
-                if (front.size <= m) {  // Cała grupa się mieści
-                    result.push_back({front.id, front.size});
-                    m -= front.size;
-                } else if (front.canSplit) {  // Grupa się dzieli
-                    result.push_back({front.id, m});
-                    queue.push_front({front.id, front.size - m, front.canSplit});
-                    m = 0;
-                } else {  // Grupa nie może się podzielić, zostaje w kolejce
-                    queue.push_front(front);
+                Group &g = groups[rightmost];
+                if (g.size <= remaining) {
+                    result.emplace_back(g.id, g.size);
+                    remaining -= g.size;
+                    seg.update(rightmost, 0);
+                } 
+                else if (g.can_split) {
+                    result.emplace_back(g.id, remaining);
+                    g.size -= remaining;
+                    seg.update(rightmost, g.size);
+                    remaining = 0;
+                } 
+                else {
                     break;
                 }
             }
 
-            // Wypisujemy wynik
-            cout << result.size() << '\n';
-            for (auto &[id, count] : result) {
-                cout << id << ' ' << count << '\n';
-            }
-        }
-    }
-
-    return 0;
-}
+            cout << result.size() << '\
