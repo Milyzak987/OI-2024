@@ -118,4 +118,12 @@ int main() {
                 }
             }
 
-            cout << result.size() << '\
+            cout << result.size() << '\n';
+            for (auto &[id, count] : result) {
+                cout << id << ' ' << count << '\n';
+            }
+        }
+    }
+
+    return 0;
+}
