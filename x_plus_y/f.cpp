@@ -1,40 +1,96 @@
-#include <bits/stdc++.h>
+#include <iostream>
+#include <vector>
+#include <queue>
+#include <algorithm>
+
 using namespace std;
 
-const int TESTS = 10; // Liczba plików testowych
-const int N = 1000;
-const string DIRECTORY = "in/";
+struct Opponent {
+    vector<int> u;
+    vector<int> z;
+    int sum_z;
+    int index;
+};
 
-void generate_test(int test_number) {
-    string filename = DIRECTORY + "test" + to_string(test_number) + ".txt";
-    ofstream out(filename);
-    
-    if (!out) {
-        cerr << "Nie można otworzyć pliku: " << filename << '\n';
-        return;
+struct CompareSumZ {
+    bool operator()(const Opponent& a, const Opponent& b) {
+        return a.sum_z < b.sum_z;
     }
-
-    out << N << '\n';
-
-    string s(N, 'T');
-    for (int i = 1; i < N; i++) {
-        s[i] = (rand() % 2 == 0 ? 'T' : 'R');
-    }
-
-    out << s << '\n';
-    out.close();
-}
+};
 
 int main() {
-    srand(time(0)); // Ustawienie seed dla losowości
+    ios_base::sync_with_stdio(false);
+    cin.tie(nullptr);
 
-    // Tworzenie folderu, jeśli nie istnieje
-    system(("mkdir -p " + DIRECTORY).c_str());
+    int n, k;
+    cin >> n >> k;
 
-    for (int i = 1; i <= TESTS; i++) {
-        generate_test(i);
+    vector<Opponent> opponents(n);
+    for (int i = 0; i < n; ++i) {
+        opponents[i].u.resize(k);
+        for (int j = 0; j < k; ++j) {
+            cin >> opponents[i].u[j];
+        }
+        opponents[i].index = i;
+    }
+    for (int i = 0; i < n; ++i) {
+        opponents[i].z.resize(k);
+        int sum = 0;
+        for (int j = 0; j < k; ++j) {
+            cin >> opponents[i].z[j];
+            sum += opponents[i].z[j];
+        }
+        opponents[i].sum_z = sum;
     }
 
-    cout << "Wygenerowano " << TESTS << " testów w folderze '" << DIRECTORY << "'\n";
+    vector<int> current_sum(k, 0);
+    vector<bool> defeated(n, false);
+    priority_queue<Opponent, vector<Opponent>, CompareSumZ> eligible;
+
+    // Initially eligible opponents
+    for (int i = 0; i < n; ++i) {
+        bool can_defeat = true;
+        for (int j = 0; j < k; ++j) {
+            if (opponents[i].u[j] > current_sum[j]) {
+                can_defeat = false;
+                break;
+            }
+        }
+        if (can_defeat) {
+            eligible.push(opponents[i]);
+            defeated[i] = true;
+        }
+    }
+
+    int count = 0;
+
+    while (!eligible.empty()) {
+        Opponent current = eligible.top();
+        eligible.pop();
+        count++;
+
+        for (int j = 0; j < k; ++j) {
+            current_sum[j] += current.z[j];
+        }
+
+        // Check all opponents again
+        for (int i = 0; i < n; ++i) {
+            if (defeated[i]) continue;
+            bool can_defeat = true;
+            for (int j = 0; j < k; ++j) {
+                if (opponents[i].u[j] > current_sum[j]) {
+                    can_defeat = false;
+                    break;
+                }
+            }
+            if (can_defeat) {
+                eligible.push(opponents[i]);
+                defeated[i] = true;
+            }
+        }
+    }
+
+    cout << count << endl;
+
     return 0;
 }
