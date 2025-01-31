@@ -1,60 +1,40 @@
 #include <bits/stdc++.h>
 using namespace std;
 
-#define int long long
-const int MAXN = 100;
-const int MAXK = 100;
+const int TESTS = 10; // Liczba plików testowych
+const int N = 1000;
+const string DIRECTORY = "in/";
 
-int n, k;
-int skills[MAXN][MAXK];  // Umiejętności przeciwników
-int gains[MAXN][MAXK];   // Przyrost umiejętności Bajtka
-bool defeated[MAXN];     // Czy przeciwnik został już pokonany?
-
-vector<int> current_skills; // Aktualne umiejętności Bajtka
-
-// Sprawdza, czy Bajtek może pokonać przeciwnika idx
-bool can_defeat(int idx) {
-    for (int j = 0; j < k; j++) {
-        if (current_skills[j] < skills[idx][j]) return false;
+void generate_test(int test_number) {
+    string filename = DIRECTORY + "test" + to_string(test_number) + ".txt";
+    ofstream out(filename);
+    
+    if (!out) {
+        cerr << "Nie można otworzyć pliku: " << filename << '\n';
+        return;
     }
-    return true;
+
+    out << N << '\n';
+
+    string s(N, 'T');
+    for (int i = 1; i < N; i++) {
+        s[i] = (rand() % 2 == 0 ? 'T' : 'R');
+    }
+
+    out << s << '\n';
+    out.close();
 }
 
-int32_t main() {
-    ios::sync_with_stdio(0);
-    cin.tie(0);
+int main() {
+    srand(time(0)); // Ustawienie seed dla losowości
 
-    cin >> n >> k;
-    current_skills.assign(k, 0); // Początkowe umiejętności = 0
+    // Tworzenie folderu, jeśli nie istnieje
+    system(("mkdir -p " + DIRECTORY).c_str());
 
-    // Wczytanie umiejętności przeciwników
-    for (int i = 0; i < n; i++)
-        for (int j = 0; j < k; j++)
-            cin >> skills[i][j];
-
-    // Wczytanie przyrostów umiejętności
-    for (int i = 0; i < n; i++)
-        for (int j = 0; j < k; j++)
-            cin >> gains[i][j];
-
-    int defeated_count = 0;
-    bool progress = true;
-
-    while (progress) {
-        progress = false;
-        for (int i = 0; i < n; i++) {
-            if (!defeated[i] && can_defeat(i)) {
-                // Pokonujemy przeciwnika i aktualizujemy umiejętności
-                for (int j = 0; j < k; j++) {
-                    current_skills[j] += gains[i][j];
-                }
-                defeated[i] = true;
-                defeated_count++;
-                progress = true; // Restartujemy pętlę, bo Bajtek stał się silniejszy
-            }
-        }
+    for (int i = 1; i <= TESTS; i++) {
+        generate_test(i);
     }
 
-    cout << defeated_count << "\n";
+    cout << "Wygenerowano " << TESTS << " testów w folderze '" << DIRECTORY << "'\n";
     return 0;
 }
