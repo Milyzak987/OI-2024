@@ -6,42 +6,51 @@
 using namespace std;
 
 int main() {
+    ios_base::sync_with_stdio(false);
+    cin.tie(nullptr);
+
     int n, m;
     cin >> n >> m;
 
-    vector<vector<int>> days(n, vector<int>(m));
-
+    vector<pair<int, int>> events;
     for (int i = 0; i < n; ++i) {
         for (int j = 0; j < m; ++j) {
-            cin >> days[i][j];
-        }
-        sort(days[i].begin(), days[i].end());
-    }
-
-    int min_days = INT_MAX;
-
-    for (int i = 0; i < n; ++i) {
-        for (int j = 0; j < m; ++j) {
-            int start = days[i][j];
-            int end = start;
-            bool valid = true;
-
-            for (int k = 0; k < n; ++k) {
-                auto it = lower_bound(days[k].begin(), days[k].end(), start);
-                if (it == days[k].end() || *it > end) {
-                    valid = false;
-                    break;
-                }
-                end = max(end, *it);
-            }
-
-            if (valid) {
-                min_days = min(min_days, end - start + 1);
-            }
+            int day;
+            cin >> day;
+            events.emplace_back(day, i);
         }
     }
 
-    cout << min_days << endl;
+    sort(events.begin(), events.end());
+
+    vector<int> freq(n, 0);
+    int count = 0;
+    int min_len = INT_MAX;
+    int left = 0;
+
+    for (int right = 0; right < events.size(); ++right) {
+        int film = events[right].second;
+        if (freq[film] == 0) {
+            ++count;
+        }
+        ++freq[film];
+
+        while (count == n) {
+            int current_len = events[right].first - events[left].first + 1;
+            if (current_len < min_len) {
+                min_len = current_len;
+            }
+
+            int left_film = events[left].second;
+            --freq[left_film];
+            if (freq[left_film] == 0) {
+                --count;
+            }
+            ++left;
+        }
+    }
+
+    cout << min_len << endl;
 
     return 0;
 }
