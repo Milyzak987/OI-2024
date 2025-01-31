@@ -2,15 +2,17 @@
 using namespace std;
 
 #define int long long
-const int MAXN = 1000006; // Maksymalna wielkość danych
+const int MAXN = 100;
+const int MAXK = 100;
 
 int n, k;
-int skills[MAXN][MAXN];  // Umiejętności przeciwników
-int gains[MAXN][MAXN];   // Przyrost umiejętności Bajtka
-int current_skills[MAXN]; // Aktualne umiejętności Bajtka
-int order[MAXN];         // Indeksy przeciwników po sortowaniu
+int skills[MAXN][MAXK];  // Umiejętności przeciwników
+int gains[MAXN][MAXK];   // Przyrost umiejętności Bajtka
+bool defeated[MAXN];     // Czy przeciwnik został już pokonany?
 
-// Funkcja sprawdzająca, czy Bajtek może pokonać przeciwnika
+vector<int> current_skills; // Aktualne umiejętności Bajtka
+
+// Sprawdza, czy Bajtek może pokonać przeciwnika idx
 bool can_defeat(int idx) {
     for (int j = 0; j < k; j++) {
         if (current_skills[j] < skills[idx][j]) return false;
@@ -18,54 +20,41 @@ bool can_defeat(int idx) {
     return true;
 }
 
-// Sortowanie przeciwników według ich najtrudniejszej karty
-bool compare(int a, int b) {
-    return *max_element(skills[a], skills[a] + k) < *max_element(skills[b], skills[b] + k);
-}
-
 int32_t main() {
     ios::sync_with_stdio(0);
     cin.tie(0);
 
     cin >> n >> k;
+    current_skills.assign(k, 0); // Początkowe umiejętności = 0
 
     // Wczytanie umiejętności przeciwników
-    for (int i = 0; i < n; i++) {
-        for (int j = 0; j < k; j++) {
+    for (int i = 0; i < n; i++)
+        for (int j = 0; j < k; j++)
             cin >> skills[i][j];
-        }
-    }
 
     // Wczytanie przyrostów umiejętności
-    for (int i = 0; i < n; i++) {
-        for (int j = 0; j < k; j++) {
+    for (int i = 0; i < n; i++)
+        for (int j = 0; j < k; j++)
             cin >> gains[i][j];
-        }
-    }
 
-    // Inicjalizacja początkowych umiejętności Bajtka
-    fill(current_skills, current_skills + k, 0);
+    int defeated_count = 0;
+    bool progress = true;
 
-    // Inicjalizacja indeksów przeciwników
-    for (int i = 0; i < n; i++) order[i] = i;
-
-    // Sortujemy przeciwników według trudności
-    sort(order, order + n, compare);
-
-    int defeated = 0;
-
-    // Przechodzimy przez posortowanych przeciwników i sprawdzamy, czy Bajtek ich pokona
-    for (int i = 0; i < n; i++) {
-        int idx = order[i];
-        if (can_defeat(idx)) {
-            // Aktualizacja umiejętności Bajtka
-            for (int j = 0; j < k; j++) {
-                current_skills[j] += gains[idx][j];
+    while (progress) {
+        progress = false;
+        for (int i = 0; i < n; i++) {
+            if (!defeated[i] && can_defeat(i)) {
+                // Pokonujemy przeciwnika i aktualizujemy umiejętności
+                for (int j = 0; j < k; j++) {
+                    current_skills[j] += gains[i][j];
+                }
+                defeated[i] = true;
+                defeated_count++;
+                progress = true; // Restartujemy pętlę, bo Bajtek stał się silniejszy
             }
-            defeated++;
         }
     }
 
-    cout << defeated << "\n";
+    cout << defeated_count << "\n";
     return 0;
 }
